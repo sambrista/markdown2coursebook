@@ -1,0 +1,76 @@
+{
+  "name": "markdown2coursebook-vscode",
+  "displayName": "Markdown2CourseBook",
+  "description": "Generate structured, navigable HTML course books from Markdown notes.",
+  "version": "1.0.0",
+  "publisher": "alfonsojimenez",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sambrista/markdown2coursebook.git"
+  },
+  "license": "GPL-3.0-only",
+  "type": "module",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onLanguage:markdown"
+  ],
+  "main": "./src/extension.js",
+  "files": [
+    "src/**",
+    "tools/**",
+    "README.md",
+    "LICENSE",
+    "package.json"
+  ],
+  "scripts": {
+    "postinstall": "npm --prefix ./tools install",
+    "vscode:prepublish": "npm --prefix ./tools install"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "notesTransformer.transformCurrentFile",
+        "title": "Markdown2CourseBook: Transform current Markdown file to HTML",
+        "icon": "$(book)"
+      },
+      {
+        "command": "notesTransformer.transformFolder",
+        "title": "Markdown2CourseBook: Transform all Markdown files in this folder",
+        "icon": "$(folder-opened)"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "notesTransformer.transformCurrentFile",
+          "when": "resourceExtname == .md",
+          "group": "navigation"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "notesTransformer.transformCurrentFile",
+          "when": "resourceExtname == .md",
+          "group": "1_modification"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "notesTransformer.transformCurrentFile",
+          "when": "resourceExtname == .md",
+          "group": "1_modification"
+        },
+        {
+          "command": "notesTransformer.transformFolder",
+          "when": "explorerResourceIsFolder",
+          "group": "1_modification"
+        }
+      ]
+    }
+  }
+}

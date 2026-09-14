@@ -1,0 +1,16 @@
+{
+  "name": "notes-transformer",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "CLI to transform DWEC theory markdown into calm, paginated HTML notes",
+  "scripts": {
+    "build": "node src/transform-notes.mjs"
+  },
+  "dependencies": {
+    "fast-glob": "^3.3.3",
+    "highlight.js": "^11.11.1",
+    "markdown-it": "^14.1.0",
+    "markdown-it-anchor": "^9.2.0"
+  }
+}

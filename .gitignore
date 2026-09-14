@@ -1,0 +1,12 @@
+node_modules/
+tools/node_modules/
+
+*.vsix
+*.vsixmanifest
+
+.vscode/
+*.log
+npm-debug.log*
+
+.DS_Store
+Thumbs.db
