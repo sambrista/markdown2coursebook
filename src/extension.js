@@ -37,6 +37,11 @@ function getWorkspaceRootDir(fileUri) {
   return path.dirname(fileUri.fsPath);
 }
 
+function getOutputDir(rootDir) {
+  const outputFolder = vscode.workspace.getConfiguration("markdown2coursebook").get("outputFolder", "out");
+  return path.resolve(rootDir, outputFolder);
+}
+
 /**
  * Transforma un único archivo Markdown.
  */
@@ -60,7 +65,7 @@ async function transformSingleFile(targetUri) {
   }
 
   const rootDir = getWorkspaceRootDir(targetUri);
-  const outDir = path.join(rootDir, "out");
+  const outDir = getOutputDir(rootDir);
 
   try {
     const outputPath = await vscode.window.withProgress(
@@ -100,7 +105,7 @@ async function transformFolder(folderUri) {
 
   const folderPath = folderUri.fsPath;
   const rootDir = getWorkspaceRootDir(folderUri);
-  const outDir = path.join(rootDir, "out");
+  const outDir = getOutputDir(rootDir);
 
   try {
     const pattern = new vscode.RelativePattern(folderUri, "**/*.md");
@@ -130,7 +135,7 @@ async function transformFolder(folderUri) {
     );
 
     const openFirstAction = "Abrir primero";
-    const message = `Se han transformado con éxito ${generatedOutputs.length} archivo(s) en la carpeta "out".`;
+    const message = `Se han transformado con éxito ${generatedOutputs.length} archivo(s) en la carpeta "${path.relative(rootDir, outDir)}".`;
     const selected = await vscode.window.showInformationMessage(message, openFirstAction);
 
     if (selected === openFirstAction && generatedOutputs.length > 0) {

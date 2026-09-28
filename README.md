@@ -38,6 +38,8 @@ const message = "Hello";
 console.log(message);
 ```
 
+Local images referenced by the Markdown file are embedded in the generated HTML, so they remain available when the HTML is moved.
+
 ## Commands
 
 ### Transform the current Markdown file
@@ -50,6 +52,8 @@ console.log(message);
 Right-click a folder in the Explorer and select `Markdown2CourseBook: Transform all Markdown files in this folder`. The extension searches recursively for `.md` files and processes them.
 
 After transformation, a notification includes an **Open file** action for viewing the generated HTML in a browser.
+
+The output folder can be changed with the `markdown2coursebook.outputFolder` setting. It defaults to `out` and accepts a path relative to the workspace root or an absolute path.
 
 ## Development
 
@@ -112,6 +116,8 @@ Los bloques de código se convierten en una vista más clara y usable, con:
 
 El formato de código queda visualmente más profesional y mucho más legible en la versión HTML.
 
+Las imágenes locales referenciadas desde el Markdown se incrustan en el HTML generado, por lo que siguen disponibles aunque se mueva el archivo HTML.
+
 ### 4. Nombre del archivo en los bloques de código
 
 Puedes fijar el nombre del archivo que aparece sobre un bloque de código escribiendo un texto en negrita con formato de código justo antes del bloque:
@@ -140,6 +146,9 @@ Con esto, la extensión muestra el nombre del archivo encima del bloque correspo
 
 3. **Notificación y apertura rápida**:
    - Muestra una notificación con el resultado y un botón **"Abrir archivo"** para visualizar el HTML en el navegador.
+
+4. **Configurar carpeta de salida**:
+    - Cambia `markdown2coursebook.outputFolder` en la configuración de VS Code. Por defecto, los HTML se generan en `out`; también se admiten rutas absolutas.
 
 ## Cómo probarla en modo desarrollo
 

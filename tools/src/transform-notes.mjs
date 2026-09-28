@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import fg from "fast-glob";
 import hljs from "highlight.js";
@@ -36,6 +36,7 @@ function parseArgs(argv) {
     if (arg === "--out" && argv[i + 1]) {
       options.out = argv[i + 1];
       i += 1;
+      continue;
     }
   }
 
@@ -48,6 +49,27 @@ function parseArgs(argv) {
 
 function removeIndexBlock(markdownSource) {
   return markdownSource.replace(/##\s+Índice\s*\n+\[\[toc\]\]\s*\n*/i, "");
+}
+
+function removeHtmlComments(htmlContent) {
+  let output = "";
+  let cursor = 0;
+
+  while (cursor < htmlContent.length) {
+    const commentStart = htmlContent.indexOf("<!--", cursor);
+    if (commentStart === -1) {
+      output += htmlContent.slice(cursor);
+      break;
+    }
+
+    output += htmlContent.slice(cursor, commentStart);
+    const commentEnd = htmlContent.indexOf("-->", commentStart + 4);
+    const end = commentEnd === -1 ? htmlContent.length : commentEnd + 3;
+    output += htmlContent.slice(commentStart, end).replace(/[^\n]/g, "");
+    cursor = end;
+  }
+
+  return output;
 }
 
 function escapeHtml(value) {
@@ -136,6 +158,59 @@ function attachCodeFilenames(htmlContent) {
       return `<${preStart.slice(1, -1)} data-filename=\"${filename}\">`;
     }
   );
+}
+
+async function embedLocalImages(htmlContent, sourceDir) {
+  const imageTags = [...htmlContent.matchAll(/<img\b[^>]*>/gi)];
+  const mimeTypes = {
+    ".avif": "image/avif",
+    ".bmp": "image/bmp",
+    ".gif": "image/gif",
+    ".ico": "image/x-icon",
+    ".jpeg": "image/jpeg",
+    ".jpg": "image/jpeg",
+    ".png": "image/png",
+    ".svg": "image/svg+xml",
+    ".tif": "image/tiff",
+    ".tiff": "image/tiff",
+    ".webp": "image/webp"
+  };
+  const replacements = await Promise.all(imageTags.map(async ([tag]) => {
+    const sourceMatch = tag.match(/\bsrc="([^"]*)"/i);
+    if (!sourceMatch) {
+      return tag;
+    }
+
+    const source = sourceMatch[1]
+      .replace(/&amp;/g, "&")
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">");
+    if (/^(?:[a-z][a-z\d+.-]*:|\/\/|\/)/i.test(source)) {
+      return tag;
+    }
+
+    try {
+      const baseUrl = pathToFileURL(`${sourceDir}${path.sep}`);
+      const imagePath = fileURLToPath(new URL(source, baseUrl));
+      const image = await fs.readFile(imagePath);
+      const mimeType = mimeTypes[path.extname(imagePath).toLowerCase()];
+      if (!mimeType) {
+        return tag;
+      }
+
+      return tag.replace(sourceMatch[0], `src="data:${mimeType};base64,${image.toString("base64")}"`);
+    } catch {
+      return tag;
+    }
+  }));
+
+  let result = htmlContent;
+  for (let index = 0; index < imageTags.length; index += 1) {
+    result = result.replace(imageTags[index][0], replacements[index]);
+  }
+  return result;
 }
 
 function escapeJsonForHtml(value) {
@@ -719,7 +794,6 @@ function buildHtmlPage({ title, htmlContent, headings }) {
     </main>
   </div>
   <button id="back-to-top" class="back-to-top" type="button" aria-label="Subir al principio" title="Subir al principio" hidden>↑</button>
-
   <script>
     const headings = ${headingsJson};
     const article = document.getElementById("article-root");
@@ -970,6 +1044,8 @@ function buildHtmlPage({ title, htmlContent, headings }) {
 
     let isCollapsed = false;
     let manualToggleScrollY = null;
+    let manualTogglePending = false;
+    let manualToggleTimer = null;
 
     function setSidebarCollapsed(collapsed) {
       isCollapsed = collapsed;
@@ -1000,8 +1076,17 @@ function buildHtmlPage({ title, htmlContent, headings }) {
 
     if (tocToggle) {
       tocToggle.addEventListener("click", () => {
-        manualToggleScrollY = window.scrollY;
+        if (manualToggleTimer !== null) {
+          window.clearTimeout(manualToggleTimer);
+        }
+        manualTogglePending = true;
+        manualToggleScrollY = null;
         setSidebarCollapsed(!isCollapsed);
+        manualToggleTimer = window.setTimeout(() => {
+          manualToggleScrollY = window.scrollY;
+          manualTogglePending = false;
+          manualToggleTimer = null;
+        }, 300);
       });
     }
 
@@ -1009,6 +1094,10 @@ function buildHtmlPage({ title, htmlContent, headings }) {
       updateBackToTop();
 
       const scrollY = window.scrollY;
+
+      if (manualTogglePending) {
+        return;
+      }
 
       if (manualToggleScrollY !== null && Math.abs(scrollY - manualToggleScrollY) > 60) {
         manualToggleScrollY = null;
@@ -1046,26 +1135,43 @@ function buildHtmlPage({ title, htmlContent, headings }) {
 }
 
 export async function transformFile(filePath, outDir, rootDir) {
-  const source = await fs.readFile(filePath, "utf8");
-  const cleanedSource = preprocessAdmonitions(removeIndexBlock(source));
-
-  const headings = [];
-  const renderer = createMarkdownRenderer(headings);
-  const htmlContent = attachCodeFilenames(renderer.render(cleanedSource));
-
-  const title = path.basename(filePath);
-  const finalHtml = buildHtmlPage({ title, htmlContent, headings });
+  const { html } = await renderMarkdownToHtml(filePath);
 
   const relativePath = path.relative(rootDir, filePath);
   const outputPath = path.join(outDir, relativePath).replace(/\.md$/i, ".html");
 
   await fs.mkdir(path.dirname(outputPath), { recursive: true });
-  await fs.writeFile(outputPath, finalHtml, "utf8");
+  await fs.writeFile(outputPath, html, "utf8");
 
   return outputPath;
 }
 
-export { buildHtmlPage, createMarkdownRenderer, preprocessAdmonitions, removeIndexBlock, attachCodeFilenames };
+/**
+ * Renderiza un Markdown a HTML.
+ */
+async function renderMarkdownToHtml(filePath) {
+  const source = await fs.readFile(filePath, "utf8");
+  const cleanedSource = preprocessAdmonitions(removeIndexBlock(source));
+
+  const headings = [];
+  const renderer = createMarkdownRenderer(headings);
+  const renderedContent = removeHtmlComments(attachCodeFilenames(renderer.render(cleanedSource)));
+  const htmlContent = await embedLocalImages(renderedContent, path.dirname(filePath));
+
+  const fallbackTitle = path.basename(filePath);
+  const html = buildHtmlPage({ title: fallbackTitle, htmlContent, headings });
+  const title = headings.find((item) => item.level === 1)?.title || fallbackTitle;
+
+  return { html, title, headings };
+}
+
+export {
+  buildHtmlPage,
+  createMarkdownRenderer,
+  preprocessAdmonitions,
+  removeIndexBlock,
+  attachCodeFilenames
+};
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
@@ -1086,13 +1192,13 @@ async function main() {
   }
 
   const outputs = [];
+
   for (const filePath of files) {
-    const outFile = await transformFile(filePath, outDir, rootDir);
-    outputs.push(path.relative(rootDir, outFile));
+    outputs.push(await transformFile(filePath, outDir, rootDir));
   }
 
-  console.log(`Generated ${outputs.length} HTML file(s):`);
-  outputs.forEach((outFile) => console.log(`- ${outFile}`));
+  console.log(`Generated ${outputs.length} file(s):`);
+  outputs.forEach((outFile) => console.log(`- ${path.relative(rootDir, outFile)}`));
 }
 
 const isDirectExecution = process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);

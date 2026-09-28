@@ -44,6 +44,16 @@
         "icon": "$(folder-opened)"
       }
     ],
+    "configuration": {
+      "title": "Markdown2CourseBook",
+      "properties": {
+        "markdown2coursebook.outputFolder": {
+          "type": "string",
+          "default": "out",
+          "description": "Folder for generated HTML files, relative to the workspace root (or an absolute path)."
+        }
+      }
+    },
     "menus": {
       "editor/title": [
         {
