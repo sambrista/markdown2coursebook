@@ -63,6 +63,12 @@ The output folder can be changed with the `markdown2coursebook.outputFolder` set
 4. A new VS Code Extension Development Host window opens.
 5. Open a Markdown file or right-click a folder and run a command.
 
+### Package the extension
+
+1. Run `npm install` from the repository root.
+2. Run `npx @vscode/vsce package` from the repository root.
+3. The `.vsix` package is created in the repository root. Its filename includes the extension version from `package.json`.
+
 ## License
 
 This project is licensed under the GNU General Public License v3.0. See [LICENSE](LICENSE).
@@ -157,6 +163,12 @@ Con esto, la extensión muestra el nombre del archivo encima del bloque correspo
 3. Presiona `F5` (o entra en la pestaña **Ejecutar y depurar** y lanza la extensión).
 4. Se abrirá una nueva ventana de VS Code (*Extension Development Host*).
 5. Abre cualquier archivo `teoria.md` o haz clic derecho en una carpeta (por ejemplo `UT 1`) y ejecuta el comando.
+
+### Generar el paquete VSIX
+
+1. Ejecuta `npm install` desde la raíz del repositorio.
+2. Ejecuta `npx @vscode/vsce package` desde la raíz del repositorio.
+3. El archivo `.vsix` se genera en la raíz. Su nombre incluye la versión de la extensión indicada en `package.json`.
 
 ## Licencia
 

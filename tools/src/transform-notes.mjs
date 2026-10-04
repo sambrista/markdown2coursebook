@@ -601,6 +601,12 @@ function buildHtmlPage({ title, htmlContent, headings }) {
       max-width: none;
     }
 
+    .admonition img {
+      display: block;
+      max-width: 100%;
+      height: auto;
+    }
+
     .admonition-title {
       margin-top: 0;
       font-weight: 700;

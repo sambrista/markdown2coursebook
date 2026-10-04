@@ -2,7 +2,7 @@
   "name": "markdown2coursebook-vscode",
   "displayName": "Markdown2CourseBook",
   "description": "Generate structured, navigable HTML course books from Markdown notes.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "publisher": "alfonsojimenez",
   "repository": {
     "type": "git",
