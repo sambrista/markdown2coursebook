@@ -2,6 +2,11 @@
 
 Todos los cambios relevantes de este proyecto se documentan en este archivo.
 
+## [1.0.5]
+
+### Añadido
+- Icono de la extensión (`images/icon.png`).
+
 ## [1.0.4]
 
 ### Corregido
