@@ -8,7 +8,8 @@ CLI tool to transform theory markdown files into calm, paginated HTML notes.
 - Removes the `## Índice + [[toc]]` source block and builds a dual quick navigation (desktop sidebar + mobile collapsible).
 - Paginates the document internally by H2 sections (single HTML file).
 - Adds section picker, next/previous controls, and reading progress bar.
-- Preserves admonitions (`!!! info`, `!!! note`, `!!! warning`) and syntax highlighting.
+- Preserves and styles all supported admonitions: `note`, `tip`, `warning`, `caution`, `important`, `danger`, `info`, `success`, `question`, `failure`, `bug`, `example`, `quote`, `abstract`, `todo`, `attention`, `seealso`, `deprecated`, `security`, `exercise`, and `solution`.
+- Preserves syntax highlighting.
 
 ## Install
 

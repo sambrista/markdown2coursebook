@@ -19,7 +19,12 @@ Admonition blocks are rendered as visually distinct callouts:
 
 !!! info
     This block provides additional context.
+
+!!! tip
+    A practical tip to help the student.
 ```
+
+Supported types: `note`, `tip`, `warning`, `caution`, `important`, `danger`, `info`, `success`, `question`, `failure`, `bug`, `example`, `quote`, `abstract`, `todo`, `attention`, `seealso`, `deprecated`, `security`, `exercise`, and `solution`.
 
 ### Section navigation and pagination
 
@@ -96,7 +101,12 @@ Ejemplo de uso:
 
 !!! info
     Este bloque sirve para explicar un detalle adicional.
+
+!!! tip
+    Un consejo práctico para el alumno.
 ```
+
+Se reconocen estos tipos: `note`, `tip`, `warning`, `caution`, `important`, `danger`, `info`, `success`, `question`, `failure`, `bug`, `example`, `quote`, `abstract`, `todo`, `attention`, `seealso`, `deprecated`, `security`, `exercise` y `solution`.
 
 En el HTML generado, estos bloques se renderizan como tarjetas con un título y estilo diferenciados según el tipo.
 

@@ -86,34 +86,59 @@ function preprocessAdmonitions(markdownSource) {
   const output = [];
 
   for (let index = 0; index < lines.length; index += 1) {
-    const match = lines[index].match(/^!!!\s*([a-z]+)(?:\s+(.*))?\s*$/i);
+    const match = lines[index].match(/^([ \t]*)!!!\s*([a-z]+)(?:\s+(.*))?\s*$/i);
 
     if (!match) {
       output.push(lines[index]);
       continue;
     }
 
-    const type = match[1].toLowerCase();
-    const title = match[2]?.trim() || type;
+    const indentation = match[1];
+    const type = match[2].toLowerCase();
+    const title = match[3]?.trim() || type;
+    const indentationColumns = [...indentation].reduce(
+      (columns, character) => columns + (character === "\t" ? 4 : 1),
+      0
+    );
     const body = [];
     index += 1;
 
     while (index < lines.length) {
       const line = lines[index];
-      if (line === "" || line.startsWith("    ") || line.startsWith("\t")) {
-        body.push(line.startsWith("    ") ? line.slice(4) : line.replace(/^\t/, ""));
+      const leadingWhitespace = line.match(/^[ \t]*/)[0];
+      const leadingColumns = [...leadingWhitespace].reduce(
+        (columns, character) => columns + (character === "\t" ? 4 : 1),
+        0
+      );
+
+      if (line.trim() === "" || leadingColumns >= indentationColumns + 4) {
+        let columnsToRemove = indentationColumns + 4;
+        let charactersToRemove = 0;
+        for (const character of leadingWhitespace) {
+          const characterColumns = character === "\t" ? 4 : 1;
+          if (columnsToRemove < characterColumns) {
+            break;
+          }
+          columnsToRemove -= characterColumns;
+          charactersToRemove += 1;
+          if (columnsToRemove === 0) {
+            break;
+          }
+        }
+
+        body.push(line.trim() === "" ? "" : `${indentation}${line.slice(charactersToRemove)}`);
         index += 1;
         continue;
       }
       break;
     }
 
-    output.push(`<div class="admonition ${escapeHtml(type)}">`);
-    output.push(`<p class="admonition-title">${escapeHtml(title)}</p>`);
+    output.push(`${indentation}<div class="admonition ${escapeHtml(type)}">`);
+    output.push(`${indentation}<p class="admonition-title">${escapeHtml(title)}</p>`);
     output.push("");
     output.push(...body);
     output.push("");
-    output.push("</div>");
+    output.push(`${indentation}</div>`);
     output.push("");
     index -= 1;
   }
@@ -634,13 +659,39 @@ function buildHtmlPage({ title, htmlContent, headings }) {
       background: #4b82c5;
     }
 
-    .admonition.warning .admonition-title::before {
+    .admonition.tip .admonition-title::before,
+    .admonition.success .admonition-title::before,
+    .admonition.solution .admonition-title::before {
+      background: #528344;
+    }
+
+    .admonition.tip .admonition-title::before { content: "✦"; }
+    .admonition.success .admonition-title::before,
+    .admonition.solution .admonition-title::before { content: "✓"; }
+
+    .admonition.warning .admonition-title::before,
+    .admonition.caution .admonition-title::before,
+    .admonition.attention .admonition-title::before {
       content: "⚠";
       border-radius: 4px;
       background: transparent;
       color: #c47720;
       font-size: 1.1em;
     }
+
+    .admonition.important .admonition-title::before { content: "!"; background: #8058a5; }
+    .admonition.danger .admonition-title::before,
+    .admonition.failure .admonition-title::before { content: "×"; background: #b64c48; }
+    .admonition.question .admonition-title::before { content: "?"; background: #4b82c5; }
+    .admonition.bug .admonition-title::before { content: "⚙"; background: #a75d39; }
+    .admonition.example .admonition-title::before { content: "◇"; background: #697c8a; }
+    .admonition.quote .admonition-title::before { content: "“"; background: #697c8a; }
+    .admonition.abstract .admonition-title::before { content: "▧"; background: #697c8a; }
+    .admonition.todo .admonition-title::before { content: "□"; background: #697c8a; }
+    .admonition.seealso .admonition-title::before { content: "↗"; background: #4b82c5; }
+    .admonition.deprecated .admonition-title::before { content: "⌛"; background: #697c8a; }
+    .admonition.security .admonition-title::before { content: "◆"; background: #8058a5; }
+    .admonition.exercise .admonition-title::before { content: "✎"; background: #4b82c5; }
 
     .hljs-comment,
     .hljs-quote { color: #71808a; font-style: italic; }
@@ -670,6 +721,56 @@ function buildHtmlPage({ title, htmlContent, headings }) {
     .admonition.warning {
       background: var(--warn-bg);
       border-color: #f0c98d;
+    }
+
+    .admonition.tip {
+      background: #f3f7e8;
+      border-color: #cbdca3;
+    }
+
+    .admonition.success,
+    .admonition.solution {
+      background: #edf7ed;
+      border-color: #b8d9b8;
+    }
+
+    .admonition.caution,
+    .admonition.attention {
+      background: var(--warn-bg);
+      border-color: #f0c98d;
+    }
+
+    .admonition.important,
+    .admonition.security {
+      background: #f3effa;
+      border-color: #d2c4e8;
+    }
+
+    .admonition.danger,
+    .admonition.failure {
+      background: #fff0ef;
+      border-color: #e7b6b1;
+    }
+
+    .admonition.question,
+    .admonition.seealso,
+    .admonition.exercise {
+      background: #eef5fb;
+      border-color: #bfd1e3;
+    }
+
+    .admonition.bug {
+      background: #fff2eb;
+      border-color: #e8c2a8;
+    }
+
+    .admonition.example,
+    .admonition.quote,
+    .admonition.abstract,
+    .admonition.todo,
+    .admonition.deprecated {
+      background: #f4f3f1;
+      border-color: #d8d4cc;
     }
 
     table {
@@ -750,8 +851,9 @@ function buildHtmlPage({ title, htmlContent, headings }) {
     }
 
     @media (max-width: 980px) {
-      .shell {
-        grid-template-columns: 1fr;
+      .shell,
+      .shell.toc-collapsed {
+        grid-template-columns: minmax(0, 1fr);
       }
 
       .toc {
