@@ -245,7 +245,7 @@ function escapeJsonForHtml(value) {
 }
 
 function buildHtmlPage({ title, htmlContent, headings }) {
-  const tocHeadings = headings.filter((item) => item.level === 2);
+  const tocHeadings = headings.filter((item) => item.level === 2 || item.level === 3);
   const documentHeading = headings.find((item) => item.level === 1);
   const contentWithoutDocumentHeading = htmlContent.replace(/^\s*<h1\b[^>]*>[\s\S]*?<\/h1>\s*/i, "");
   const headingsJson = escapeJsonForHtml(tocHeadings);
@@ -273,6 +273,9 @@ function buildHtmlPage({ title, htmlContent, headings }) {
       --radius: 14px;
       --shadow: 0 10px 30px rgba(45, 58, 56, 0.08);
       --sidebar-w: 310px;
+      --text-strong: #1d3d36;
+      --mark-bg: #fbe7a1;
+      color-scheme: light dark;
     }
 
     * {
@@ -300,10 +303,6 @@ function buildHtmlPage({ title, htmlContent, headings }) {
       transition: grid-template-columns 250ms ease;
     }
 
-    .shell.toc-collapsed {
-      grid-template-columns: 54px minmax(0, 1fr);
-    }
-
     .panel {
       background: var(--panel);
       border: 1px solid var(--line);
@@ -320,21 +319,12 @@ function buildHtmlPage({ title, htmlContent, headings }) {
       transition: padding 250ms ease;
     }
 
-    .shell.toc-collapsed .toc {
-      padding: 0.6rem 0.35rem;
-    }
-
     .toc-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 0.4rem;
       margin-bottom: 0.8rem;
-    }
-
-    .shell.toc-collapsed .toc-header {
-      margin-bottom: 0;
-      justify-content: center;
     }
 
     .toc h2 {
@@ -347,13 +337,9 @@ function buildHtmlPage({ title, htmlContent, headings }) {
       white-space: nowrap;
     }
 
-    .shell.toc-collapsed .toc h2 {
-      display: none;
-    }
-
     .toc-toggle {
       border: 1px solid var(--line);
-      background: #fff;
+      background: var(--panel);
       border-radius: 8px;
       padding: 0.3rem 0.55rem;
       cursor: pointer;
@@ -375,14 +361,6 @@ function buildHtmlPage({ title, htmlContent, headings }) {
     .toc-toggle-icon {
       flex-shrink: 0;
       display: block;
-    }
-
-    .shell.toc-collapsed .toc-toggle-text {
-      display: none;
-    }
-
-    .shell.toc-collapsed .toc-list {
-      display: none;
     }
 
     .toc-list {
@@ -411,10 +389,76 @@ function buildHtmlPage({ title, htmlContent, headings }) {
       color: #1d3d36;
     }
 
-    .toc-list a.level-3 {
-      padding-left: 1.2rem;
+    .toc-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.15rem;
+    }
+
+    .toc-row a {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .toc-expand {
+      flex-shrink: 0;
+      width: 1.6rem;
+      height: 1.6rem;
+      margin-top: 0.35rem;
+      display: grid;
+      place-items: center;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
       color: var(--text-soft);
-      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    .toc-expand:hover {
+      background: var(--accent-soft);
+      color: #1d3d36;
+    }
+
+    .toc-expand svg {
+      transition: transform 180ms ease;
+    }
+
+    .toc-item.open > .toc-row .toc-expand svg {
+      transform: rotate(90deg);
+    }
+
+    .toc-expand-spacer {
+      flex-shrink: 0;
+      width: 1.6rem;
+    }
+
+    .toc-sublist {
+      list-style: none;
+      margin: 0.1rem 0 0.35rem 1.75rem;
+      padding: 0 0 0 0.45rem;
+      border-left: 2px solid var(--line);
+      display: none;
+      gap: 0.1rem;
+    }
+
+    .toc-item.open > .toc-sublist {
+      display: grid;
+    }
+
+    .toc-list a.level-2.active {
+      font-weight: 700;
+    }
+
+    .toc-list a.level-3 {
+      padding: 0.25rem 0.5rem;
+      color: var(--text-soft);
+      font-size: 0.88rem;
+      line-height: 1.4;
+    }
+
+    .toc-list a.level-3.active {
+      color: #1d3d36;
+      box-shadow: inset 3px 0 0 var(--accent);
     }
 
     .content-wrap {
@@ -487,6 +531,7 @@ function buildHtmlPage({ title, htmlContent, headings }) {
     h3 { font-size: clamp(1.15rem, 2vw, 1.35rem); }
 
     .page h3 {
+      scroll-margin-top: 1rem;
       margin-top: 2.4rem;
       padding: 0.65rem 0.8rem 0.5rem;
       border-top: 2px solid #b8cec7;
@@ -626,10 +671,13 @@ function buildHtmlPage({ title, htmlContent, headings }) {
       max-width: none;
     }
 
-    .admonition img {
-      display: block;
+    .article img {
       max-width: 100%;
       height: auto;
+    }
+
+    .admonition img {
+      display: block;
     }
 
     .admonition-title {
@@ -778,7 +826,7 @@ function buildHtmlPage({ title, htmlContent, headings }) {
       border: 1px solid var(--line);
       border-radius: 8px;
       overflow: hidden;
-      background: #fff;
+      background: var(--panel);
       margin: 1rem 0;
     }
 
@@ -808,7 +856,8 @@ function buildHtmlPage({ title, htmlContent, headings }) {
     .pager button,
     .pager select {
       border: 1px solid var(--line);
-      background: #fff;
+      background: var(--panel);
+      color: inherit;
       border-radius: 10px;
       padding: 0.45rem 0.7rem;
       font: inherit;
@@ -850,14 +899,277 @@ function buildHtmlPage({ title, htmlContent, headings }) {
       font-size: 0.95rem;
     }
 
-    @media (max-width: 980px) {
-      .shell,
+    .page [id] {
+      scroll-margin-top: 1rem;
+    }
+
+    .page [tabindex="-1"]:focus {
+      outline: none;
+    }
+
+    .toc-close {
+      display: none;
+      border: 0;
+      border-radius: 8px;
+      padding: 0.3rem;
+      background: transparent;
+      color: var(--text-soft);
+      cursor: pointer;
+    }
+
+    .toc-close:hover {
+      background: var(--accent-soft);
+      color: var(--text-strong);
+    }
+
+    .toc-search {
+      position: relative;
+      margin-bottom: 0.7rem;
+    }
+
+    .toc-search input {
+      width: 100%;
+      padding: 0.45rem 2rem;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: var(--bg-soft);
+      color: var(--text-main);
+      font: 0.92rem "Atkinson Hyperlegible", "Segoe UI", sans-serif;
+    }
+
+    .toc-search input:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+
+    .toc-search-icon,
+    .toc-search-key {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-soft);
+      pointer-events: none;
+    }
+
+    .toc-search-icon {
+      left: 0.65rem;
+    }
+
+    .toc-search-key {
+      right: 0.55rem;
+      padding: 0 0.3rem;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--panel);
+      font: 0.75rem "Cascadia Mono", "Consolas", monospace;
+    }
+
+    .toc-search input:focus ~ .toc-search-key,
+    .toc-search input:not(:placeholder-shown) ~ .toc-search-key {
+      display: none;
+    }
+
+    .toc-empty {
+      margin: 0.2rem 0.55rem;
+      color: var(--text-soft);
+      font: italic 0.9rem "Atkinson Hyperlegible", "Segoe UI", sans-serif;
+    }
+
+    .toc-list mark {
+      background: var(--mark-bg);
+      color: inherit;
+      border-radius: 3px;
+      padding: 0 1px;
+    }
+
+    .reading-progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      z-index: 40;
+      pointer-events: none;
+    }
+
+    .reading-progress span {
+      display: block;
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, #739f95, var(--accent));
+      transition: width 120ms linear;
+    }
+
+    .toc-fab {
+      display: none;
+      position: fixed;
+      left: 1rem;
+      bottom: 1.25rem;
+      z-index: 10;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.6rem 0.95rem;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--panel);
+      color: var(--text-main);
+      box-shadow: var(--shadow);
+      font: 600 0.95rem "Atkinson Hyperlegible", "Segoe UI", sans-serif;
+      cursor: pointer;
+    }
+
+    .toc-backdrop {
+      display: none;
+    }
+
+    .resume {
+      position: fixed;
+      left: 50%;
+      bottom: 1.25rem;
+      z-index: 20;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem 0.8rem;
+      width: max-content;
+      max-width: min(760px, calc(100% - 2rem));
+      padding: 0.6rem 0.7rem 0.6rem 1rem;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--panel);
+      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.18);
+      font: 0.95rem "Atkinson Hyperlegible", "Segoe UI", sans-serif;
+      transform: translateX(-50%);
+      animation: resumeIn 220ms ease;
+    }
+
+    .resume[hidden] {
+      display: none;
+    }
+
+    @keyframes resumeIn {
+      from { opacity: 0; transform: translate(-50%, 8px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
+
+    .resume-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .resume-go {
+      border: 0;
+      border-radius: 8px;
+      padding: 0.4rem 0.85rem;
+      background: var(--accent);
+      color: #fff;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .resume-close {
+      width: 2rem;
+      height: 2rem;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text-soft);
+      font-size: 1.3rem;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .resume-close:hover {
+      background: var(--accent-soft);
+    }
+
+    @media (min-width: 981px) {
       .shell.toc-collapsed {
+        grid-template-columns: 54px minmax(0, 1fr);
+      }
+
+      .shell.toc-collapsed .toc {
+        padding: 0.6rem 0.35rem;
+      }
+
+      .shell.toc-collapsed .toc-header {
+        margin-bottom: 0;
+        justify-content: center;
+      }
+
+      .shell.toc-collapsed .toc h2,
+      .shell.toc-collapsed .toc-toggle-text,
+      .shell.toc-collapsed .toc-search,
+      .shell.toc-collapsed .toc-empty,
+      .shell.toc-collapsed .toc-list {
+        display: none;
+      }
+    }
+
+    @media (max-width: 980px) {
+      .shell {
         grid-template-columns: minmax(0, 1fr);
       }
 
       .toc {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        z-index: 30;
+        width: min(86vw, 340px);
+        max-height: none;
+        border-radius: 0 var(--radius) var(--radius) 0;
+        transform: translateX(-105%);
+        visibility: hidden;
+        transition: transform 220ms ease, visibility 0s linear 220ms;
+      }
+
+      body.toc-drawer-open .toc {
+        transform: none;
+        visibility: visible;
+        transition: transform 220ms ease;
+      }
+
+      body.toc-drawer-open {
+        overflow: hidden;
+      }
+
+      .toc-toggle,
+      .toc-search-key {
         display: none;
+      }
+
+      .toc-close {
+        display: inline-grid;
+        place-items: center;
+      }
+
+      .toc-fab {
+        display: inline-flex;
+      }
+
+      .toc-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 25;
+        background: rgba(20, 28, 26, 0.4);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 220ms ease;
+      }
+
+      body.toc-drawer-open .toc-backdrop {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .resume {
+        bottom: 4.6rem;
       }
 
       .article,
@@ -866,9 +1178,241 @@ function buildHtmlPage({ title, htmlContent, headings }) {
         padding-right: 0.95rem;
       }
     }
+
+    @media screen and (prefers-color-scheme: dark) {
+      :root {
+        --bg-main: #151a19;
+        --bg-soft: #1a201f;
+        --panel: #1d2423;
+        --text-main: #dbe3e0;
+        --text-soft: #9fb0ab;
+        --text-strong: #eaf4f0;
+        --line: #33403d;
+        --accent: #7fb0a4;
+        --accent-soft: #263a35;
+        --code-bg: #182021;
+        --note-bg: #1b2637;
+        --warn-bg: #322818;
+        --info-bg: #1a2d29;
+        --mark-bg: #5e4f1d;
+        --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      }
+
+      body {
+        background:
+          radial-gradient(1200px 500px at -10% -10%, #1e2422 0%, transparent 65%),
+          radial-gradient(900px 420px at 110% -5%, #192623 0%, transparent 62%),
+          var(--bg-main);
+      }
+
+      .toc-toggle:hover,
+      .toc-expand:hover,
+      .toc-list a:hover,
+      .toc-list a.active,
+      .toc-list a.level-3.active {
+        color: var(--text-strong);
+      }
+
+      .progress {
+        background: #2a3230;
+      }
+
+      h1, h2, h3, h4 {
+        color: #e3ebe8;
+      }
+
+      h2 {
+        background: linear-gradient(90deg, #22302c, transparent);
+      }
+
+      .page h3 {
+        border-top-color: #3d5a52;
+        border-bottom-color: #2c3b37;
+        background: linear-gradient(90deg, #1f2c29, transparent);
+        color: #9fd0c3;
+      }
+
+      h4 {
+        border-left-color: #3d5a52;
+        color: #b5cbc5;
+      }
+
+      a {
+        color: #8cc9b9;
+      }
+
+      pre,
+      .code-frame {
+        border-color: #2e3a3d;
+      }
+
+      .code-header {
+        background: #222b2d;
+        color: #b4c3c8;
+      }
+
+      .code-file {
+        color: #8d9ea3;
+      }
+
+      .copy-code {
+        border-color: #3b4a4e;
+        background: #1e2526;
+        color: #9fd0c3;
+      }
+
+      .line-numbers {
+        border-right-color: #2e3a3d;
+        color: #6c7c80;
+        background: #1c2324;
+      }
+
+      :not(pre) > code {
+        background: #263032;
+        border-color: #34403f;
+      }
+
+      .hljs-comment,
+      .hljs-quote { color: #8494a0; }
+      .hljs-keyword,
+      .hljs-selector-tag,
+      .hljs-built_in { color: #d49bd0; }
+      .hljs-string,
+      .hljs-title,
+      .hljs-section,
+      .hljs-attribute { color: #7fc8a9; }
+      .hljs-number,
+      .hljs-literal,
+      .hljs-variable { color: #e5a07a; }
+      .hljs-name,
+      .hljs-tag { color: #85b5e6; }
+
+      .admonition.info { border-color: #2f5a50; }
+      .admonition.note { border-color: #34507a; }
+      .admonition.warning,
+      .admonition.caution,
+      .admonition.attention { border-color: #6b5228; }
+      .admonition.tip { background: #232a1b; border-color: #4d5e2c; }
+      .admonition.success,
+      .admonition.solution { background: #1c2b1c; border-color: #3c5e3c; }
+      .admonition.important,
+      .admonition.security { background: #262135; border-color: #4a3f66; }
+      .admonition.danger,
+      .admonition.failure { background: #321f1f; border-color: #6e3a36; }
+      .admonition.question,
+      .admonition.seealso,
+      .admonition.exercise { background: #1c2733; border-color: #3b5168; }
+      .admonition.bug { background: #32241b; border-color: #6b4a33; }
+      .admonition.example,
+      .admonition.quote,
+      .admonition.abstract,
+      .admonition.todo,
+      .admonition.deprecated { background: #232321; border-color: #3f3d39; }
+
+      .back-to-top,
+      .resume-go {
+        color: #10201c;
+      }
+
+      .toc-backdrop {
+        background: rgba(0, 0, 0, 0.55);
+      }
+
+      .resume {
+        box-shadow: 0 12px 34px rgba(0, 0, 0, 0.5);
+      }
+    }
+
+    @media print {
+      :root {
+        color-scheme: light;
+      }
+
+      @page {
+        margin: 1.6cm 1.4cm;
+      }
+
+      * {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      body {
+        background: #fff;
+        font-size: 11pt;
+        line-height: 1.5;
+      }
+
+      .reading-progress,
+      .toc,
+      .toc-fab,
+      .toc-backdrop,
+      .resume,
+      .progress,
+      .pager,
+      .back-to-top,
+      .copy-code,
+      .line-numbers {
+        display: none !important;
+      }
+
+      .shell {
+        display: block;
+        width: auto;
+        margin: 0;
+      }
+
+      .panel {
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+        background: none;
+      }
+
+      .content-wrap,
+      .code-body {
+        overflow: visible;
+      }
+
+      .article,
+      .page-header {
+        padding: 0;
+      }
+
+      .article {
+        min-height: 0;
+      }
+
+      .page {
+        display: block !important;
+        animation: none;
+      }
+
+      .page + .page {
+        break-before: page;
+      }
+
+      h1, h2, h3, h4 {
+        break-after: avoid;
+      }
+
+      .code-frame,
+      .admonition,
+      img,
+      tr {
+        break-inside: avoid;
+      }
+
+      pre {
+        overflow: visible;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+    }
   </style>
 </head>
 <body>
+  <div class="reading-progress" aria-hidden="true"><span id="reading-progress"></span></div>
   <div class="shell">
     <aside id="toc-panel" class="panel toc" aria-label="Índice del tema">
       <div class="toc-header">
@@ -877,7 +1421,16 @@ function buildHtmlPage({ title, htmlContent, headings }) {
           <svg class="toc-toggle-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="M16 15l-3-3 3-3"/></svg>
           <span class="toc-toggle-text">Ocultar índice</span>
         </button>
+        <button id="toc-close" class="toc-close" type="button" aria-label="Cerrar índice" title="Cerrar índice">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
       </div>
+      <div class="toc-search">
+        <svg class="toc-search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input id="toc-search" type="search" placeholder="Buscar en el índice" aria-label="Buscar en el índice" autocomplete="off" spellcheck="false" />
+        <kbd class="toc-search-key" aria-hidden="true">/</kbd>
+      </div>
+      <p id="toc-empty" class="toc-empty" hidden>Sin resultados</p>
       <ul id="toc-desktop" class="toc-list"></ul>
     </aside>
 
@@ -902,6 +1455,18 @@ function buildHtmlPage({ title, htmlContent, headings }) {
     </main>
   </div>
   <button id="back-to-top" class="back-to-top" type="button" aria-label="Subir al principio" title="Subir al principio" hidden>↑</button>
+  <button id="toc-fab" class="toc-fab" type="button" aria-controls="toc-panel" aria-expanded="false">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+    <span>Índice</span>
+  </button>
+  <div id="toc-backdrop" class="toc-backdrop"></div>
+  <div id="resume" class="resume" role="status" hidden>
+    <span class="resume-text">Continuar donde lo dejaste: <strong id="resume-where"></strong></span>
+    <span class="resume-actions">
+      <button id="resume-go" class="resume-go" type="button">Continuar</button>
+      <button id="resume-close" class="resume-close" type="button" aria-label="Descartar" title="Descartar">×</button>
+    </span>
+  </div>
   <script>
     const headings = ${headingsJson};
     const article = document.getElementById("article-root");
@@ -959,23 +1524,281 @@ function buildHtmlPage({ title, htmlContent, headings }) {
       pages.forEach((page) => article.appendChild(page));
     }
 
+    const chevronIcon = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
+
+    function createTocLink(heading) {
+      const link = document.createElement("a");
+      link.href = "#" + heading.slug;
+      link.textContent = heading.title;
+      link.dataset.slug = heading.slug;
+      link.dataset.title = heading.title;
+      link.classList.add("level-" + heading.level);
+      link.addEventListener("click", (event) => {
+        event.preventDefault();
+        releaseSidebarPin();
+        closeDrawer(false);
+        goToSlug(heading.slug, true);
+      });
+      return link;
+    }
+
+    function setTocItemOpen(item, open) {
+      item.classList.toggle("open", open);
+      const button = item.querySelector(":scope > .toc-row > .toc-expand");
+      if (button) {
+        button.setAttribute("aria-expanded", String(open));
+        button.title = open ? "Contraer apartados" : "Desplegar apartados";
+      }
+    }
+
     function renderToc(target) {
       target.innerHTML = "";
+      let currentItem = null;
 
       headings.forEach((heading) => {
+        if (heading.level === 3 && currentItem) {
+          let sublist = currentItem.querySelector(":scope > .toc-sublist");
+          if (!sublist) {
+            sublist = document.createElement("ul");
+            sublist.className = "toc-sublist";
+            currentItem.appendChild(sublist);
+
+            const spacer = currentItem.querySelector(":scope > .toc-row > .toc-expand-spacer");
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "toc-expand";
+            button.innerHTML = chevronIcon;
+            const item = currentItem;
+            button.addEventListener("click", () => {
+              setTocItemOpen(item, !item.classList.contains("open"));
+            });
+            spacer.replaceWith(button);
+            setTocItemOpen(item, false);
+          }
+
+          const li = document.createElement("li");
+          li.appendChild(createTocLink(heading));
+          sublist.appendChild(li);
+          return;
+        }
+
         const li = document.createElement("li");
-        const link = document.createElement("a");
-        link.href = "#" + heading.slug;
-        link.textContent = heading.title;
-        link.dataset.slug = heading.slug;
-        link.classList.add("level-" + heading.level);
-        link.addEventListener("click", (event) => {
-          event.preventDefault();
-          jumpToSlug(heading.slug);
-        });
-        li.appendChild(link);
+        li.className = "toc-item";
+        li.dataset.slug = heading.slug;
+        const row = document.createElement("div");
+        row.className = "toc-row";
+        const spacer = document.createElement("span");
+        spacer.className = "toc-expand-spacer";
+        row.append(spacer, createTocLink(heading));
+        li.appendChild(row);
         target.appendChild(li);
+        if (heading.level === 2) {
+          currentItem = li;
+        }
       });
+    }
+
+    // ---- Buscador del índice ----
+
+    const tocSearch = document.getElementById("toc-search");
+    const tocEmpty = document.getElementById("toc-empty");
+
+    // Pasa a minúsculas y quita tildes, guardando para cada carácter
+    // normalizado su posición en el texto original (para resaltar).
+    function foldText(text) {
+      let folded = "";
+      const map = [];
+      for (let index = 0; index < text.length; index += 1) {
+        const piece = text[index].normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase();
+        for (let k = 0; k < piece.length; k += 1) {
+          folded += piece[k];
+          map.push(index);
+        }
+      }
+      return { folded, map };
+    }
+
+    function highlightLink(link, query) {
+      const title = link.dataset.title;
+      link.textContent = title;
+      if (!query) {
+        return false;
+      }
+      const { folded, map } = foldText(title);
+      const position = folded.indexOf(query);
+      if (position < 0) {
+        return false;
+      }
+      const start = map[position];
+      const end = map[position + query.length - 1] + 1;
+      const mark = document.createElement("mark");
+      mark.textContent = title.slice(start, end);
+      link.textContent = "";
+      link.append(title.slice(0, start), mark, title.slice(end));
+      return true;
+    }
+
+    function currentTocQuery() {
+      return tocSearch ? foldText(tocSearch.value.trim()).folded : "";
+    }
+
+    function applyTocFilter() {
+      const query = currentTocQuery();
+      tocDesktop.classList.toggle("filtering", query !== "");
+      let visible = 0;
+
+      tocDesktop.querySelectorAll(":scope > .toc-item").forEach((item) => {
+        const sectionMatch = highlightLink(item.querySelector(":scope > .toc-row > a"), query);
+        let subMatches = 0;
+        item.querySelectorAll(":scope > .toc-sublist > li").forEach((sub) => {
+          const match = highlightLink(sub.querySelector("a"), query);
+          if (match) {
+            subMatches += 1;
+          }
+          sub.hidden = Boolean(query) && !match && !sectionMatch;
+        });
+        item.hidden = Boolean(query) && !sectionMatch && subMatches === 0;
+        if (!item.hidden) {
+          visible += 1;
+        }
+        if (query) {
+          setTocItemOpen(item, subMatches > 0);
+        }
+      });
+
+      if (tocEmpty) {
+        tocEmpty.hidden = !query || visible > 0;
+      }
+      if (!query) {
+        syncTocOpenState();
+      }
+    }
+
+    if (tocSearch) {
+      tocSearch.addEventListener("input", applyTocFilter);
+      tocSearch.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          const links = Array.from(tocDesktop.querySelectorAll("a"));
+          const first = links.find((link) => link.querySelector("mark")) ||
+            links.find((link) => link.offsetParent !== null);
+          if (first) {
+            first.click();
+          }
+        } else if (event.key === "Escape") {
+          if (tocSearch.value) {
+            event.stopPropagation();
+            tocSearch.value = "";
+            applyTocFilter();
+          } else {
+            tocSearch.blur();
+          }
+        }
+      });
+    }
+
+    // ---- URL e historial ----
+    // Cada cambio de sección crea una entrada en el historial (el botón "atrás"
+    // vuelve a la sección anterior). Dentro de una sección solo se reemplaza el #.
+
+    if ("scrollRestoration" in history) {
+      history.scrollRestoration = "manual";
+    }
+
+    let activeSubSlug = null;
+    let pendingHash = null;
+
+    function writeHistory(slug, push) {
+      const url = slug ? "#" + slug : location.pathname + location.search;
+      try {
+        if (push) {
+          history.pushState({ scrollY: 0 }, "", url);
+        } else {
+          history.replaceState(Object.assign({}, history.state), "", url);
+        }
+      } catch {
+        // Algunos navegadores limitan el número de llamadas; no es crítico.
+      }
+    }
+
+    // Si se escribe el # en la URL antes de que termine la carga, el navegador
+    // desplaza la página hasta ese ancla al completarla. Se aplaza hasta después.
+    function setHash(slug) {
+      pendingHash = slug;
+      if (document.readyState === "complete") {
+        applyPendingHash();
+      }
+    }
+
+    function applyPendingHash() {
+      if (pendingHash && location.hash !== "#" + pendingHash) {
+        writeHistory(pendingHash, false);
+      }
+      pendingHash = null;
+    }
+
+    function rememberScrollInHistory() {
+      try {
+        history.replaceState(Object.assign({}, history.state, { scrollY: window.scrollY }), "", location.href);
+      } catch {
+        // Ignorado: solo sirve para restaurar el scroll al volver atrás.
+      }
+    }
+
+    window.addEventListener("load", () => {
+      window.setTimeout(applyPendingHash, 0);
+    });
+
+    function revealInToc(link) {
+      const panel = document.getElementById("toc-panel");
+      if (!panel || panel.scrollHeight <= panel.clientHeight) {
+        return;
+      }
+      const panelRect = panel.getBoundingClientRect();
+      const linkRect = link.getBoundingClientRect();
+      const margin = 24;
+      if (linkRect.top < panelRect.top + margin) {
+        panel.scrollTop -= panelRect.top + margin - linkRect.top;
+      } else if (linkRect.bottom > panelRect.bottom - margin) {
+        panel.scrollTop += linkRect.bottom - (panelRect.bottom - margin);
+      }
+    }
+
+    function updateActiveSubsection() {
+      const activePage = pages[currentPage];
+      if (!activePage) {
+        return;
+      }
+
+      const threshold = Math.min(window.innerHeight * 0.3, 160);
+      let current = null;
+      activePage.querySelectorAll("h3[id]").forEach((heading) => {
+        if (heading.getBoundingClientRect().top <= threshold) {
+          current = heading;
+        }
+      });
+
+      const slug = current ? current.id : null;
+      if (slug === activeSubSlug) {
+        return;
+      }
+      activeSubSlug = slug;
+
+      document.querySelectorAll(".toc-list a.level-3.active").forEach((item) => {
+        item.classList.remove("active");
+      });
+      if (slug) {
+        document.querySelectorAll('.toc-list a.level-3[data-slug="' + slug + '"]').forEach((item) => {
+          item.classList.add("active");
+          revealInToc(item);
+        });
+      }
+
+      const sectionHeading = activePage.querySelector("h2[id], h1[id]");
+      const hashSlug = slug || (sectionHeading ? sectionHeading.id : null);
+      if (hashSlug) {
+        setHash(hashSlug);
+      }
     }
 
     function languageLabel(language) {
@@ -1069,6 +1892,14 @@ function buildHtmlPage({ title, htmlContent, headings }) {
       });
     }
 
+    function syncTocOpenState() {
+      const activePage = pages[currentPage];
+      const sectionHeading = activePage ? activePage.querySelector("h2[id]") : null;
+      tocDesktop.querySelectorAll(":scope > .toc-item").forEach((item) => {
+        setTocItemOpen(item, Boolean(sectionHeading) && item.dataset.slug === sectionHeading.id);
+      });
+    }
+
     function refreshControls(index) {
       const total = pages.length;
       pageStates.forEach((state) => {
@@ -1080,42 +1911,133 @@ function buildHtmlPage({ title, htmlContent, headings }) {
       nextButtons.forEach((button) => {
         button.disabled = index >= total - 1;
       });
-      progressBar.style.width = (((index + 1) / total) * 100) + "%";
 
       document.querySelectorAll(".toc-list a.active").forEach((item) => {
         item.classList.remove("active");
       });
 
-      const activePage = pages[index];
-      const activeHeading = activePage.querySelector("h2[id], h3[id], h1[id]");
+      activeSubSlug = null;
+      if (currentTocQuery()) {
+        applyTocFilter();
+      } else {
+        syncTocOpenState();
+      }
+
+      const activeHeading = pages[index].querySelector("h2[id], h3[id], h1[id]");
       if (activeHeading) {
         const activeSlug = activeHeading.id;
         document.querySelectorAll('.toc-list a[data-slug="' + activeSlug + '"]').forEach((item) => {
           item.classList.add("active");
+          revealInToc(item);
         });
-        if (location.hash !== "#" + activeSlug) {
-          history.replaceState(null, "", "#" + activeSlug);
-        }
+        setHash(activeSlug);
       }
     }
 
+    // ---- Barra de progreso: secciones completadas + lo leído de la actual ----
+
+    const readingBar = document.getElementById("reading-progress");
+
+    function updateProgress() {
+      const page = pages[currentPage];
+      if (!page) {
+        return;
+      }
+      const start = page.getBoundingClientRect().top + window.scrollY;
+      const end = start + page.offsetHeight - window.innerHeight;
+      const fraction = end <= start ? 1 : Math.min(1, Math.max(0, (window.scrollY - start) / (end - start)));
+      const percent = ((currentPage + fraction) / pages.length) * 100;
+      progressBar.style.width = percent + "%";
+      if (readingBar) {
+        readingBar.style.width = percent + "%";
+      }
+    }
+
+    // ---- Navegación ----
+
     function showPage(index) {
       const bounded = Math.max(0, Math.min(index, pages.length - 1));
+      currentPage = bounded;
       pages.forEach((page, pageIndex) => {
         page.classList.toggle("active", pageIndex === bounded);
       });
       refreshControls(bounded);
+      updateActiveSubsection();
+      updateProgress();
       return bounded;
     }
 
-    function jumpToSlug(slug) {
-      const targetPageIndex = pages.findIndex((page) => {
-        return page.querySelector("#" + CSS.escape(slug));
-      });
-
-      if (targetPageIndex >= 0) {
-        currentPage = showPage(targetPageIndex);
+    function decodeSlug(hash) {
+      const raw = (hash || "").replace(/^#/, "");
+      try {
+        return decodeURIComponent(raw);
+      } catch {
+        return raw;
       }
+    }
+
+    function pageIndexOf(element) {
+      return element ? pages.findIndex((page) => page.contains(element)) : -1;
+    }
+
+    function findTarget(slug) {
+      if (!slug) {
+        return null;
+      }
+      const element = document.getElementById(slug);
+      return pageIndexOf(element) >= 0 ? element : null;
+    }
+
+    function sectionSlug(index) {
+      const heading = pages[index].querySelector("h2[id], h3[id], h1[id]");
+      return heading ? heading.id : null;
+    }
+
+    function isSectionStart(target, index) {
+      return target === pages[index].querySelector("h2[id]");
+    }
+
+    // El título de sección lleva al principio de la página; cualquier otro
+    // destino (###, ####, anclas del contenido) se desplaza hasta él.
+    function scrollToTarget(target, index, smooth) {
+      if (isSectionStart(target, index)) {
+        window.scrollTo({ top: 0, behavior: "instant" });
+      } else {
+        target.scrollIntoView({ behavior: smooth ? "smooth" : "instant", block: "start" });
+      }
+    }
+
+    function beforeNavigation(index, slug) {
+      hideResume();
+      const changesSection = index !== currentPage;
+      if (changesSection) {
+        rememberScrollInHistory();
+      }
+      writeHistory(slug, changesSection);
+    }
+
+    function goToPage(index) {
+      const bounded = Math.max(0, Math.min(index, pages.length - 1));
+      if (bounded === currentPage) {
+        return;
+      }
+      beforeNavigation(bounded, sectionSlug(bounded));
+      showPage(bounded);
+      window.scrollTo({ top: 0, behavior: "instant" });
+      saveProgressSoon();
+    }
+
+    function goToSlug(slug, smooth) {
+      const target = findTarget(slug);
+      if (!target) {
+        return false;
+      }
+      const index = pageIndexOf(target);
+      beforeNavigation(index, slug);
+      showPage(index);
+      scrollToTarget(target, index, smooth);
+      saveProgressSoon();
+      return true;
     }
 
     buildPages();
@@ -1125,17 +2047,69 @@ function buildHtmlPage({ title, htmlContent, headings }) {
     let currentPage = 0;
 
     prevButtons.forEach((button) => {
+      button.title = "Sección anterior (←)";
       button.addEventListener("click", () => {
-        currentPage = showPage(currentPage - 1);
+        goToPage(currentPage - 1);
       });
     });
 
     nextButtons.forEach((button) => {
+      button.title = "Sección siguiente (→)";
       button.addEventListener("click", () => {
-        currentPage = showPage(currentPage + 1);
+        goToPage(currentPage + 1);
       });
     });
 
+    // Botones atrás/adelante del navegador y cambios manuales del # en la URL.
+    // Las entradas creadas por esta página llevan estado; un # editado a mano no.
+    let lastPopWasTraversal = false;
+
+    window.addEventListener("popstate", (event) => {
+      lastPopWasTraversal = event.state !== null;
+      hideResume();
+      const target = findTarget(decodeSlug(location.hash));
+      const index = target ? pageIndexOf(target) : 0;
+      showPage(index);
+      const savedScroll = event.state && typeof event.state.scrollY === "number" ? event.state.scrollY : 0;
+      if (savedScroll > 0) {
+        window.scrollTo({ top: savedScroll, behavior: "instant" });
+      } else if (target) {
+        scrollToTarget(target, index, false);
+      } else {
+        window.scrollTo({ top: 0, behavior: "instant" });
+      }
+    });
+
+    // Al editar el # a mano, el navegador hace su propio salto al ancla después
+    // de "popstate"; se recoloca para que una sección se abra desde arriba.
+    window.addEventListener("hashchange", () => {
+      if (lastPopWasTraversal) {
+        lastPopWasTraversal = false;
+        return;
+      }
+      const target = findTarget(decodeSlug(location.hash));
+      if (target) {
+        const index = pageIndexOf(target);
+        if (index !== currentPage) {
+          showPage(index);
+        }
+        scrollToTarget(target, index, false);
+      }
+    });
+
+    // Enlaces internos del contenido ([texto](#otro-apartado)).
+    article.addEventListener("click", (event) => {
+      const link = event.target.closest('a[href^="#"]');
+      if (!link || event.defaultPrevented || event.button !== 0 ||
+          event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) {
+        return;
+      }
+      const slug = decodeSlug(link.getAttribute("href"));
+      if (findTarget(slug)) {
+        event.preventDefault();
+        goToSlug(slug, true);
+      }
+    });
 
     function updateBackToTop() {
       backToTop.hidden = window.scrollY < 480;
@@ -1150,10 +2124,15 @@ function buildHtmlPage({ title, htmlContent, headings }) {
     const tocToggleIcon = tocToggle ? tocToggle.querySelector(".toc-toggle-icon") : null;
     const tocToggleText = tocToggle ? tocToggle.querySelector(".toc-toggle-text") : null;
 
+    // Comportamiento del panel lateral:
+    // - Empieza abierto y se cierra solo al hacer scroll hacia abajo.
+    // - Si se abre con el botón, queda fijado: el scroll ya no lo cierra.
+    // - Al pulsar un enlace del índice se libera y vuelve a cerrarse con el scroll.
     let isCollapsed = false;
-    let manualToggleScrollY = null;
-    let manualTogglePending = false;
-    let manualToggleTimer = null;
+    let sidebarPinned = false;
+    let suppressAutoOpen = false;
+    let pageLoaded = false;
+    let scrollBaseline = null;
 
     function setSidebarCollapsed(collapsed) {
       isCollapsed = collapsed;
@@ -1184,59 +2163,277 @@ function buildHtmlPage({ title, htmlContent, headings }) {
 
     if (tocToggle) {
       tocToggle.addEventListener("click", () => {
-        if (manualToggleTimer !== null) {
-          window.clearTimeout(manualToggleTimer);
-        }
-        manualTogglePending = true;
-        manualToggleScrollY = null;
         setSidebarCollapsed(!isCollapsed);
-        manualToggleTimer = window.setTimeout(() => {
-          manualToggleScrollY = window.scrollY;
-          manualTogglePending = false;
-          manualToggleTimer = null;
-        }, 300);
+        sidebarPinned = !isCollapsed;
+        suppressAutoOpen = isCollapsed;
+        scrollBaseline = null;
       });
     }
 
+    function releaseSidebarPin() {
+      sidebarPinned = false;
+      scrollBaseline = null;
+    }
+
+    window.addEventListener("load", () => {
+      // Se espera a que el navegador termine de colocar la página (p. ej. al
+      // abrir un enlace con #) para que ese desplazamiento no cierre el panel.
+      window.setTimeout(() => {
+        pageLoaded = true;
+        scrollBaseline = window.scrollY;
+      }, 50);
+    });
+
     function handleScroll() {
       updateBackToTop();
+      updateActiveSubsection();
 
       const scrollY = window.scrollY;
 
-      if (manualTogglePending) {
+      if (!pageLoaded || sidebarPinned) {
         return;
       }
 
-      if (manualToggleScrollY !== null && Math.abs(scrollY - manualToggleScrollY) > 60) {
-        manualToggleScrollY = null;
+      if (scrollBaseline !== null) {
+        if (Math.abs(scrollY - scrollBaseline) <= 60) {
+          return;
+        }
+        scrollBaseline = null;
       }
 
-      if (manualToggleScrollY === null) {
-        if (scrollY > 120) {
-          if (!isCollapsed) {
-            setSidebarCollapsed(true);
-          }
-        } else if (scrollY <= 40) {
-          if (isCollapsed) {
-            setSidebarCollapsed(false);
-          }
+      if (scrollY > 120) {
+        suppressAutoOpen = false;
+        if (!isCollapsed) {
+          setSidebarCollapsed(true);
         }
+      } else if (scrollY <= 40 && isCollapsed && !suppressAutoOpen) {
+        setSidebarCollapsed(false);
       }
     }
 
     window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
 
-    const hashSlug = location.hash.replace(/^#/, "");
-    if (hashSlug) {
-      jumpToSlug(hashSlug);
+    let scrollStateTimer = null;
+
+    function afterScroll() {
+      updateProgress();
+      window.clearTimeout(scrollStateTimer);
+      scrollStateTimer = window.setTimeout(() => {
+        if (pageLoaded) {
+          rememberScrollInHistory();
+        }
+        saveProgress();
+      }, 250);
+    }
+
+    window.addEventListener("scroll", afterScroll, { passive: true });
+    window.addEventListener("resize", updateProgress, { passive: true });
+
+    // ---- Índice en móvil (panel deslizante) ----
+
+    const mobileQuery = window.matchMedia("(max-width: 980px)");
+    const tocFab = document.getElementById("toc-fab");
+    const tocClose = document.getElementById("toc-close");
+    const tocBackdrop = document.getElementById("toc-backdrop");
+    let drawerOpen = false;
+
+    function openDrawer(withSearch) {
+      drawerOpen = true;
+      document.body.classList.add("toc-drawer-open");
+      if (tocFab) {
+        tocFab.setAttribute("aria-expanded", "true");
+      }
+      window.requestAnimationFrame(() => {
+        const active = tocDesktop.querySelector("a.level-3.active") || tocDesktop.querySelector("a.active");
+        if (active) {
+          revealInToc(active);
+        }
+        const focusTarget = withSearch && tocSearch ? tocSearch : tocClose;
+        if (focusTarget) {
+          focusTarget.focus({ preventScroll: true });
+        }
+      });
+    }
+
+    function closeDrawer(returnFocus) {
+      if (!drawerOpen) {
+        return;
+      }
+      drawerOpen = false;
+      document.body.classList.remove("toc-drawer-open");
+      if (tocFab) {
+        tocFab.setAttribute("aria-expanded", "false");
+        if (returnFocus) {
+          tocFab.focus({ preventScroll: true });
+        }
+      }
+    }
+
+    if (tocFab) {
+      tocFab.addEventListener("click", () => openDrawer(false));
+    }
+    if (tocClose) {
+      tocClose.addEventListener("click", () => closeDrawer(true));
+    }
+    if (tocBackdrop) {
+      tocBackdrop.addEventListener("click", () => closeDrawer(true));
+    }
+    mobileQuery.addEventListener("change", (event) => {
+      if (!event.matches) {
+        closeDrawer(false);
+      }
+    });
+
+    function focusTocSearch() {
+      if (mobileQuery.matches) {
+        openDrawer(true);
+        return;
+      }
+      if (isCollapsed) {
+        setSidebarCollapsed(false);
+        sidebarPinned = true;
+        suppressAutoOpen = false;
+      }
+      if (tocSearch) {
+        tocSearch.focus({ preventScroll: true });
+        tocSearch.select();
+      }
+    }
+
+    // ---- Atajos de teclado: ← → cambian de sección, / busca en el índice ----
+
+    document.addEventListener("keydown", (event) => {
+      if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) {
+        return;
+      }
+      if (event.key === "Escape" && drawerOpen) {
+        closeDrawer(true);
+        return;
+      }
+      const element = event.target;
+      const typing = element instanceof HTMLElement &&
+        (element.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(element.tagName));
+      if (typing) {
+        return;
+      }
+      if (event.key === "ArrowLeft" && !event.shiftKey) {
+        event.preventDefault();
+        goToPage(currentPage - 1);
+      } else if (event.key === "ArrowRight" && !event.shiftKey) {
+        event.preventDefault();
+        goToPage(currentPage + 1);
+      } else if (event.key === "/") {
+        event.preventDefault();
+        focusTocSearch();
+      }
+    });
+
+    // ---- Recordar dónde se quedó la lectura ----
+
+    const storageKey = "markdown2coursebook:" + location.pathname;
+    const resumeBox = document.getElementById("resume");
+    const resumeWhere = document.getElementById("resume-where");
+    let resumeVisible = false;
+    let resumeTimer = null;
+
+    function saveProgress() {
+      if (!pageLoaded || resumeVisible) {
+        return;
+      }
+      try {
+        localStorage.setItem(storageKey, JSON.stringify({
+          slug: sectionSlug(currentPage),
+          scrollY: Math.round(window.scrollY),
+          time: Date.now()
+        }));
+      } catch {
+        // Sin almacenamiento disponible (modo privado, file:// bloqueado...).
+      }
+    }
+
+    function saveProgressSoon() {
+      window.setTimeout(saveProgress, 300);
+    }
+
+    window.addEventListener("pagehide", saveProgress);
+
+    function readSavedProgress() {
+      try {
+        return JSON.parse(localStorage.getItem(storageKey) || "null");
+      } catch {
+        return null;
+      }
+    }
+
+    function hideResume() {
+      if (!resumeVisible) {
+        return;
+      }
+      resumeVisible = false;
+      window.clearTimeout(resumeTimer);
+      if (resumeBox) {
+        resumeBox.hidden = true;
+      }
+    }
+
+    function offerResume() {
+      const saved = readSavedProgress();
+      const target = saved ? findTarget(saved.slug) : null;
+      if (!target || !resumeBox) {
+        return;
+      }
+      const index = pageIndexOf(target);
+      const savedScroll = Math.max(0, Number(saved.scrollY) || 0);
+      if (index === 0 && savedScroll < 400) {
+        return;
+      }
+
+      const heading = headings.find((item) => item.slug === saved.slug);
+      resumeWhere.textContent = heading ? heading.title : target.textContent;
+      resumeVisible = true;
+      resumeBox.hidden = false;
+
+      document.getElementById("resume-go").onclick = () => {
+        beforeNavigation(index, saved.slug);
+        showPage(index);
+        window.scrollTo({ top: savedScroll, behavior: "instant" });
+        saveProgressSoon();
+      };
+      document.getElementById("resume-close").onclick = () => {
+        hideResume();
+        saveProgress();
+      };
+      resumeTimer = window.setTimeout(() => {
+        hideResume();
+      }, 20000);
+    }
+
+    // ---- Estado inicial ----
+
+    const initialTarget = findTarget(decodeSlug(location.hash));
+    if (initialTarget) {
+      const index = pageIndexOf(initialTarget);
+      showPage(index);
+      if (isSectionStart(initialTarget, index)) {
+        // Se quita el # hasta que termine la carga para que el navegador no
+        // baje hasta el título: una sección se abre desde arriba.
+        try {
+          history.replaceState(history.state, "", location.pathname + location.search);
+        } catch {
+          // Sin consecuencias: solo afectaría a la posición inicial.
+        }
+        setHash(initialTarget.id);
+        window.scrollTo(0, 0);
+      } else {
+        initialTarget.scrollIntoView({ block: "start" });
+      }
     } else {
-      currentPage = showPage(0);
-    }
-
-    if (!hashSlug) {
       showPage(0);
+      if (!location.hash) {
+        offerResume();
+      }
     }
+    handleScroll();
   </script>
 </body>
 </html>`;
