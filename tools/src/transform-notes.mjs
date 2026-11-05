@@ -173,6 +173,34 @@ function createMarkdownRenderer(headings) {
     }
   });
 
+  md.core.ruler.push("image_paragraphs", (state) => {
+    const tokens = state.tokens;
+    for (let index = 0; index + 2 < tokens.length; index += 1) {
+      const open = tokens[index];
+      const inline = tokens[index + 1];
+      if (open.type !== "paragraph_open" || inline.type !== "inline" || !inline.children?.length) {
+        continue;
+      }
+
+      let hasImage = false;
+      const onlyImages = inline.children.every((child) => {
+        if (child.type === "image" || (child.type === "html_inline" && /^<img\b/i.test(child.content))) {
+          hasImage = true;
+          return true;
+        }
+        if (child.type === "text") {
+          return child.content.trim() === "";
+        }
+        return ["softbreak", "hardbreak", "link_open", "link_close"].includes(child.type)
+          || (child.type === "html_inline" && /^<br\s*\/?>$/i.test(child.content.trim()));
+      });
+
+      if (hasImage && onlyImages) {
+        open.attrJoin("class", "image-paragraph");
+      }
+    }
+  });
+
   return md;
 }
 
@@ -678,6 +706,21 @@ function buildHtmlPage({ title, htmlContent, headings }) {
 
     .admonition img {
       display: block;
+    }
+
+    .article .image-paragraph {
+      text-align: center;
+    }
+
+    .article .image-paragraph img {
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    .article > img,
+    .article .page > img {
+      display: block;
+      margin-inline: auto;
     }
 
     .admonition-title {
