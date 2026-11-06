@@ -491,7 +491,15 @@ function buildHtmlPage({ title, htmlContent, headings }) {
 
     .content-wrap {
       padding: 0;
-      overflow: hidden;
+    }
+
+    .page-top {
+      background: var(--panel);
+      border-radius: var(--radius) var(--radius) 0 0;
+    }
+
+    .pager-bottom {
+      border-radius: 0 0 var(--radius) var(--radius);
     }
 
     .progress {
@@ -511,6 +519,7 @@ function buildHtmlPage({ title, htmlContent, headings }) {
     .article {
       padding: 1.5rem clamp(1rem, 3vw, 2.5rem) 1rem;
       min-height: 70vh;
+      overflow-x: clip;
     }
 
     .page-header {
@@ -535,7 +544,7 @@ function buildHtmlPage({ title, htmlContent, headings }) {
       to { opacity: 1; transform: translateY(0); }
     }
 
-    h1, h2, h3, h4 {
+    h1, h2, h3, h4, h5, h6 {
       line-height: 1.25;
       color: #223130;
     }
@@ -559,7 +568,7 @@ function buildHtmlPage({ title, htmlContent, headings }) {
     h3 { font-size: clamp(1.15rem, 2vw, 1.35rem); }
 
     .page h3 {
-      scroll-margin-top: 1rem;
+      scroll-margin-top: calc(var(--sticky-offset, 0px) + 1rem);
       margin-top: 2.4rem;
       padding: 0.65rem 0.8rem 0.5rem;
       border-top: 2px solid #b8cec7;
@@ -569,11 +578,38 @@ function buildHtmlPage({ title, htmlContent, headings }) {
     }
 
     h4 {
-      font-size: 1.05rem;
+      font-size: 1.1rem;
       margin-top: 1.8rem;
       padding-left: 0.7rem;
       border-left: 3px solid #b8cec7;
       color: #48635e;
+    }
+
+    h5 {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.88rem;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      margin: 1.6rem 0 0.5rem;
+      color: var(--accent);
+    }
+
+    h5::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, #cfdcd7, transparent);
+    }
+
+    h6 {
+      font-size: 1rem;
+      font-weight: 700;
+      font-style: italic;
+      margin: 1.3rem 0 0.35rem;
+      color: var(--text-soft);
     }
 
     p, li {
@@ -943,7 +979,7 @@ function buildHtmlPage({ title, htmlContent, headings }) {
     }
 
     .page [id] {
-      scroll-margin-top: 1rem;
+      scroll-margin-top: calc(var(--sticky-offset, 0px) + 1rem);
     }
 
     .page [tabindex="-1"]:focus {
@@ -1152,6 +1188,65 @@ function buildHtmlPage({ title, htmlContent, headings }) {
       }
     }
 
+    @media screen and (min-width: 981px) {
+      .page-top {
+        position: sticky;
+        top: 1rem;
+        z-index: 15;
+        transition: box-shadow 200ms ease;
+      }
+
+      .page-top.is-stuck {
+        box-shadow: 0 0 0 1px var(--line), 0 8px 18px rgba(45, 58, 56, 0.1);
+      }
+
+      /* Tapa el hueco superior y las esquinas redondeadas para que el texto
+         que pasa por debajo no asome por encima de la barra. */
+      .page-top.is-stuck::before {
+        --r: var(--radius);
+        content: "";
+        position: absolute;
+        left: -1px;
+        right: -1px;
+        bottom: calc(100% - var(--r));
+        height: calc(1rem + var(--r) + 1px);
+        pointer-events: none;
+        background:
+          radial-gradient(circle at 100% 100%, transparent calc(var(--r) + 1px), var(--bg-main) calc(var(--r) + 1.5px)) left bottom / calc(var(--r) + 1px) var(--r) no-repeat,
+          radial-gradient(circle at 0 100%, transparent calc(var(--r) + 1px), var(--bg-main) calc(var(--r) + 1.5px)) right bottom / calc(var(--r) + 1px) var(--r) no-repeat,
+          linear-gradient(var(--bg-main), var(--bg-main)) left top / 100% calc(100% - var(--r) - 1px) no-repeat;
+      }
+
+      .page-top .page-header {
+        transition: padding 200ms ease;
+      }
+
+      .page-top .page-header h1 {
+        transition: font-size 200ms ease, padding 200ms ease;
+      }
+
+      .page-top.is-stuck .page-header {
+        padding-top: 0.7rem;
+      }
+
+      .page-top.is-stuck .page-header h1 {
+        font-size: 1.25rem;
+        padding-bottom: 0.4rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .page-top.is-stuck .pager {
+        padding-top: 0.45rem;
+        padding-bottom: 0.45rem;
+      }
+
+      .page-top.is-stuck .pager button {
+        padding: 0.3rem 0.65rem;
+      }
+    }
+
     @media (max-width: 980px) {
       .shell {
         grid-template-columns: minmax(0, 1fr);
@@ -1264,6 +1359,18 @@ function buildHtmlPage({ title, htmlContent, headings }) {
         color: #e3ebe8;
       }
 
+      h5 {
+        color: #8cc9b9;
+      }
+
+      h5::after {
+        background: linear-gradient(90deg, #3d5a52, transparent);
+      }
+
+      h6 {
+        color: #b5cbc5;
+      }
+
       h2 {
         background: linear-gradient(90deg, #22302c, transparent);
       }
@@ -1364,6 +1471,10 @@ function buildHtmlPage({ title, htmlContent, headings }) {
       .resume {
         box-shadow: 0 12px 34px rgba(0, 0, 0, 0.5);
       }
+
+      .page-top.is-stuck {
+        box-shadow: 0 0 0 1px var(--line), 0 8px 18px rgba(0, 0, 0, 0.4);
+      }
     }
 
     @media print {
@@ -1435,7 +1546,7 @@ function buildHtmlPage({ title, htmlContent, headings }) {
         break-before: page;
       }
 
-      h1, h2, h3, h4 {
+      h1, h2, h3, h4, h5, h6 {
         break-after: avoid;
       }
 
@@ -1478,14 +1589,16 @@ function buildHtmlPage({ title, htmlContent, headings }) {
     </aside>
 
     <main class="panel content-wrap">
-      <header class="page-header">
-        <h1 id="${documentHeading?.slug || "document-title"}">${escapeHtml(documentHeading?.title || title)}</h1>
-      </header>
-      <div class="progress" aria-hidden="true"><span id="progress-bar"></span></div>
-      <div class="pager pager-top" aria-label="Navegación entre páginas">
-        <button class="prev-btn" data-pager="prev" type="button">Anterior</button>
-        <span class="page-state muted">1 / 1</span>
-        <button class="next-btn" data-pager="next" type="button">Siguiente</button>
+      <div id="page-top" class="page-top">
+        <header class="page-header">
+          <h1 id="${documentHeading?.slug || "document-title"}">${escapeHtml(documentHeading?.title || title)}</h1>
+        </header>
+        <div class="progress" aria-hidden="true"><span id="progress-bar"></span></div>
+        <div class="pager pager-top" aria-label="Navegación entre páginas">
+          <button class="prev-btn" data-pager="prev" type="button">Anterior</button>
+          <span class="page-state muted">1 / 1</span>
+          <button class="next-btn" data-pager="next" type="button">Siguiente</button>
+        </div>
       </div>
       <article id="article-root" class="article markdown-body">
         ${contentWithoutDocumentHeading}
@@ -2271,6 +2384,54 @@ function buildHtmlPage({ title, htmlContent, headings }) {
 
     window.addEventListener("scroll", afterScroll, { passive: true });
     window.addEventListener("resize", updateProgress, { passive: true });
+
+    // ---- Cabecera fija (título, progreso y paginación) en pantallas grandes ----
+
+    const pageTop = document.getElementById("page-top");
+    const contentWrap = pageTop ? pageTop.parentElement : null;
+    const stickyQuery = window.matchMedia("screen and (min-width: 981px)");
+
+    function stickyTopPx() {
+      return parseFloat(getComputedStyle(pageTop).top) || 0;
+    }
+
+    function updateStickyOffset() {
+      if (!pageTop) {
+        return;
+      }
+      if (!stickyQuery.matches) {
+        document.documentElement.style.removeProperty("--sticky-offset");
+        return;
+      }
+      // Altura de la barra compacta, medida aunque ahora mismo no esté fija.
+      const wasStuck = pageTop.classList.contains("is-stuck");
+      pageTop.style.transition = "none";
+      pageTop.querySelectorAll("*").forEach((el) => { el.style.transition = "none"; });
+      pageTop.classList.add("is-stuck");
+      const height = pageTop.offsetHeight;
+      pageTop.classList.toggle("is-stuck", wasStuck);
+      void pageTop.offsetHeight;
+      pageTop.style.transition = "";
+      pageTop.querySelectorAll("*").forEach((el) => { el.style.transition = ""; });
+      document.documentElement.style.setProperty("--sticky-offset", (height + stickyTopPx()) + "px");
+    }
+
+    function updateStuckHeader() {
+      if (!pageTop || !contentWrap) {
+        return;
+      }
+      // Se decide con la posición del panel, que no cambia al compactar la barra.
+      const stuck = stickyQuery.matches && contentWrap.getBoundingClientRect().top < stickyTopPx() - 0.5;
+      pageTop.classList.toggle("is-stuck", stuck);
+    }
+
+    window.addEventListener("scroll", updateStuckHeader, { passive: true });
+    window.addEventListener("resize", () => {
+      updateStickyOffset();
+      updateStuckHeader();
+    }, { passive: true });
+    updateStickyOffset();
+    updateStuckHeader();
 
     // ---- Índice en móvil (panel deslizante) ----
 
