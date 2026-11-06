@@ -376,6 +376,7 @@ function buildHtmlPage({ title, htmlContent, headings }) {
       color: var(--text-soft);
       display: inline-flex;
       align-items: center;
+      height: 1.75rem;
       gap: 0.3rem;
       flex-shrink: 0;
       transition: background 150ms ease, color 150ms ease;
@@ -1189,6 +1190,16 @@ function buildHtmlPage({ title, htmlContent, headings }) {
     }
 
     @media screen and (min-width: 981px) {
+      /* Con la cabecera completa a la vista, su propia barra de progreso basta. */
+      .reading-progress {
+        opacity: 0;
+        transition: opacity 200ms ease;
+      }
+
+      body.header-stuck .reading-progress {
+        opacity: 1;
+      }
+
       .page-top {
         position: sticky;
         top: 1rem;
@@ -1196,8 +1207,15 @@ function buildHtmlPage({ title, htmlContent, headings }) {
         transition: box-shadow 200ms ease;
       }
 
+      /* Versión compacta: título y botones en una sola línea, con la misma
+         altura que el índice plegado (botón de 1.75rem, 0.6rem de margen y borde). */
       .page-top.is-stuck {
-        box-shadow: 0 0 0 1px var(--line), 0 8px 18px rgba(45, 58, 56, 0.1);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        height: calc(1.75rem + 1.2rem + 2px);
+        padding: 0 calc(0.6rem + 1px) 0 clamp(1rem, 3vw, 2.5rem);
+        box-shadow: inset 0 0 0 1px var(--line), 0 8px 18px rgba(45, 58, 56, 0.1);
       }
 
       /* Tapa el hueco superior y las esquinas redondeadas para que el texto
@@ -1209,41 +1227,54 @@ function buildHtmlPage({ title, htmlContent, headings }) {
         left: -1px;
         right: -1px;
         bottom: calc(100% - var(--r));
-        height: calc(1rem + var(--r) + 1px);
+        height: calc(1rem + var(--r));
         pointer-events: none;
         background:
-          radial-gradient(circle at 100% 100%, transparent calc(var(--r) + 1px), var(--bg-main) calc(var(--r) + 1.5px)) left bottom / calc(var(--r) + 1px) var(--r) no-repeat,
-          radial-gradient(circle at 0 100%, transparent calc(var(--r) + 1px), var(--bg-main) calc(var(--r) + 1.5px)) right bottom / calc(var(--r) + 1px) var(--r) no-repeat,
-          linear-gradient(var(--bg-main), var(--bg-main)) left top / 100% calc(100% - var(--r) - 1px) no-repeat;
-      }
-
-      .page-top .page-header {
-        transition: padding 200ms ease;
-      }
-
-      .page-top .page-header h1 {
-        transition: font-size 200ms ease, padding 200ms ease;
+          radial-gradient(circle at 100% 100%, transparent var(--r), var(--bg-main) calc(var(--r) + 0.5px)) left bottom / calc(var(--r) + 1px) var(--r) no-repeat,
+          radial-gradient(circle at 0 100%, transparent var(--r), var(--bg-main) calc(var(--r) + 0.5px)) right bottom / calc(var(--r) + 1px) var(--r) no-repeat,
+          linear-gradient(var(--bg-main), var(--bg-main)) left top / 100% calc(100% - var(--r)) no-repeat;
       }
 
       .page-top.is-stuck .page-header {
-        padding-top: 0.7rem;
+        flex: 1;
+        min-width: 0;
+        padding: 0;
       }
 
       .page-top.is-stuck .page-header h1 {
-        font-size: 1.25rem;
-        padding-bottom: 0.4rem;
+        font-size: 1.2rem;
+        margin: 0;
+        padding: 0;
+        border-bottom: 0;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
       }
 
+      .page-top.is-stuck .progress {
+        display: none;
+      }
+
       .page-top.is-stuck .pager {
-        padding-top: 0.45rem;
-        padding-bottom: 0.45rem;
+        flex: none;
+        flex-wrap: nowrap;
+        gap: 0.5rem;
+        padding: 0;
+        border: 0;
+        background: none;
       }
 
       .page-top.is-stuck .pager button {
-        padding: 0.3rem 0.65rem;
+        min-width: 0;
+        height: 1.75rem;
+        padding: 0 0.65rem;
+        border-radius: 8px;
+        font-size: 0.85rem;
+      }
+
+      .page-top.is-stuck .page-state {
+        font-size: 0.85rem;
+        white-space: nowrap;
       }
     }
 
@@ -1473,7 +1504,7 @@ function buildHtmlPage({ title, htmlContent, headings }) {
       }
 
       .page-top.is-stuck {
-        box-shadow: 0 0 0 1px var(--line), 0 8px 18px rgba(0, 0, 0, 0.4);
+        box-shadow: inset 0 0 0 1px var(--line), 0 8px 18px rgba(0, 0, 0, 0.4);
       }
     }
 
@@ -2406,13 +2437,11 @@ function buildHtmlPage({ title, htmlContent, headings }) {
       // Altura de la barra compacta, medida aunque ahora mismo no esté fija.
       const wasStuck = pageTop.classList.contains("is-stuck");
       pageTop.style.transition = "none";
-      pageTop.querySelectorAll("*").forEach((el) => { el.style.transition = "none"; });
       pageTop.classList.add("is-stuck");
       const height = pageTop.offsetHeight;
       pageTop.classList.toggle("is-stuck", wasStuck);
       void pageTop.offsetHeight;
       pageTop.style.transition = "";
-      pageTop.querySelectorAll("*").forEach((el) => { el.style.transition = ""; });
       document.documentElement.style.setProperty("--sticky-offset", (height + stickyTopPx()) + "px");
     }
 
@@ -2423,6 +2452,7 @@ function buildHtmlPage({ title, htmlContent, headings }) {
       // Se decide con la posición del panel, que no cambia al compactar la barra.
       const stuck = stickyQuery.matches && contentWrap.getBoundingClientRect().top < stickyTopPx() - 0.5;
       pageTop.classList.toggle("is-stuck", stuck);
+      document.body.classList.toggle("header-stuck", stuck);
     }
 
     window.addEventListener("scroll", updateStuckHeader, { passive: true });
