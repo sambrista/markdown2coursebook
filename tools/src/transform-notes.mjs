@@ -1214,6 +1214,9 @@ function buildHtmlPage({ title, htmlContent, headings }) {
         align-items: center;
         gap: 1rem;
         height: calc(1.75rem + 1.2rem + 2px);
+        /* Reserva el alto que ocupaba la cabecera completa: así el contenido
+           no se desplaza al compactarla (ni descuadra los saltos del índice). */
+        margin-bottom: var(--sticky-gap, 0px);
         padding: 0 calc(0.6rem + 1px) 0 clamp(1rem, 3vw, 2.5rem);
         box-shadow: inset 0 0 0 1px var(--line), 0 8px 18px rgba(45, 58, 56, 0.1);
       }
@@ -2186,13 +2189,59 @@ function buildHtmlPage({ title, htmlContent, headings }) {
 
     // El título de sección lleva al principio de la página; cualquier otro
     // destino (###, ####, anclas del contenido) se desplaza hasta él.
+    let scrollFixToken = 0;
+
     function scrollToTarget(target, index, smooth) {
+      const token = ++scrollFixToken;
       if (isSectionStart(target, index)) {
         window.scrollTo({ top: 0, behavior: "instant" });
-      } else {
-        target.scrollIntoView({ behavior: smooth ? "smooth" : "instant", block: "start" });
+        return;
       }
+      target.scrollIntoView({ behavior: smooth ? "smooth" : "instant", block: "start" });
+      alignWhenSettled(target, token, 2);
     }
+
+    // Mientras se desplaza la página puede cambiar la maquetación (el índice se
+    // pliega y el texto se reorganiza), y el destino acaba más arriba o más abajo.
+    // Al terminar el desplazamiento se corrige la posición si hace falta.
+    function alignWhenSettled(target, token, retries) {
+      let lastY = window.scrollY;
+      let stableFrames = 0;
+      const startedAt = performance.now();
+
+      function step() {
+        if (token !== scrollFixToken) {
+          return;
+        }
+        if (window.scrollY !== lastY) {
+          lastY = window.scrollY;
+          stableFrames = 0;
+        } else {
+          stableFrames += 1;
+        }
+        if (stableFrames < 12 && performance.now() - startedAt < 3000) {
+          window.requestAnimationFrame(step);
+          return;
+        }
+        const desired = parseFloat(getComputedStyle(target).scrollMarginTop) || 0;
+        const diff = target.getBoundingClientRect().top - desired;
+        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+        const canMove = diff > 0 ? window.scrollY < maxScroll - 1 : window.scrollY > 0;
+        if (Math.abs(diff) > 2 && canMove && retries > 0) {
+          window.scrollBy({ top: diff, behavior: "smooth" });
+          alignWhenSettled(target, token, retries - 1);
+        }
+      }
+
+      window.requestAnimationFrame(step);
+    }
+
+    // Si el usuario desplaza la página por su cuenta, se abandona la corrección.
+    ["wheel", "touchstart", "keydown", "mousedown"].forEach((type) => {
+      window.addEventListener(type, () => {
+        scrollFixToken += 1;
+      }, { passive: true });
+    });
 
     function beforeNavigation(index, slug) {
       hideResume();
@@ -2434,15 +2483,18 @@ function buildHtmlPage({ title, htmlContent, headings }) {
         document.documentElement.style.removeProperty("--sticky-offset");
         return;
       }
-      // Altura de la barra compacta, medida aunque ahora mismo no esté fija.
+      // Alturas de la cabecera completa y de la compacta, sea cual sea su estado actual.
       const wasStuck = pageTop.classList.contains("is-stuck");
       pageTop.style.transition = "none";
+      pageTop.classList.remove("is-stuck");
+      const fullHeight = pageTop.offsetHeight;
       pageTop.classList.add("is-stuck");
-      const height = pageTop.offsetHeight;
+      const compactHeight = pageTop.offsetHeight;
       pageTop.classList.toggle("is-stuck", wasStuck);
       void pageTop.offsetHeight;
       pageTop.style.transition = "";
-      document.documentElement.style.setProperty("--sticky-offset", (height + stickyTopPx()) + "px");
+      pageTop.style.setProperty("--sticky-gap", Math.max(0, fullHeight - compactHeight) + "px");
+      document.documentElement.style.setProperty("--sticky-offset", (compactHeight + stickyTopPx()) + "px");
     }
 
     function updateStuckHeader() {
@@ -2460,6 +2512,18 @@ function buildHtmlPage({ title, htmlContent, headings }) {
       updateStickyOffset();
       updateStuckHeader();
     }, { passive: true });
+
+    // El ancho del panel cambia al plegar el índice: el título puede ocupar
+    // otro número de líneas y hay que volver a medir.
+    if (contentWrap && "ResizeObserver" in window) {
+      let lastWidth = contentWrap.offsetWidth;
+      new ResizeObserver(() => {
+        if (contentWrap.offsetWidth !== lastWidth) {
+          lastWidth = contentWrap.offsetWidth;
+          updateStickyOffset();
+        }
+      }).observe(contentWrap);
+    }
     updateStickyOffset();
     updateStuckHeader();
 
