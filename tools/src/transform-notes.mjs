@@ -284,6 +284,16 @@ function buildHtmlPage({ title, htmlContent, headings }) {
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>${escapeHtml(documentHeading?.title || title)}</title>
+  <script>
+    // Tema: el guardado por el usuario o, si no hay, el del sistema.
+    // Se aplica antes de pintar para evitar un destello del tema equivocado.
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem("markdown2coursebook:theme"); } catch (e) {}
+      var dark = saved ? saved === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
+      document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+    })();
+  </script>
   <style>
     :root {
       --bg-main: #f4f1ea;
@@ -527,8 +537,50 @@ function buildHtmlPage({ title, htmlContent, headings }) {
       padding: 1.5rem clamp(1rem, 3vw, 2.5rem) 0;
     }
 
+    .page-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+
     .page-header h1 {
+      flex: 1;
+      min-width: 0;
       margin: 0;
+    }
+
+    .theme-toggle {
+      flex: none;
+      display: inline-grid;
+      place-items: center;
+      width: 1.75rem;
+      height: 1.75rem;
+      margin-top: 0.35rem;
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text-soft);
+      cursor: pointer;
+      transition: background 150ms ease, color 150ms ease;
+    }
+
+    .theme-toggle:hover {
+      background: var(--accent-soft);
+      color: var(--text-strong);
+    }
+
+    .theme-toggle svg {
+      display: block;
+    }
+
+    .theme-icon-sun,
+    :root[data-theme="dark"] .theme-icon-moon {
+      display: none !important;
+    }
+
+    :root[data-theme="dark"] .theme-icon-sun {
+      display: block !important;
     }
 
     .page {
@@ -1244,6 +1296,14 @@ function buildHtmlPage({ title, htmlContent, headings }) {
         padding: 0;
       }
 
+      .page-top.is-stuck .page-header {
+        align-items: center;
+      }
+
+      .page-top.is-stuck .theme-toggle {
+        margin-top: 0;
+      }
+
       .page-top.is-stuck .page-header h1 {
         font-size: 1.2rem;
         margin: 0;
@@ -1351,8 +1411,13 @@ function buildHtmlPage({ title, htmlContent, headings }) {
       }
     }
 
-    @media screen and (prefers-color-scheme: dark) {
-      :root {
+    :root[data-theme="light"] {
+      color-scheme: light;
+    }
+
+    @media screen {
+      :root[data-theme="dark"] {
+        color-scheme: dark;
         --bg-main: #151a19;
         --bg-soft: #1a201f;
         --panel: #1d2423;
@@ -1370,143 +1435,146 @@ function buildHtmlPage({ title, htmlContent, headings }) {
         --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
       }
 
-      body {
+      :root[data-theme="dark"] body {
         background:
           radial-gradient(1200px 500px at -10% -10%, #1e2422 0%, transparent 65%),
           radial-gradient(900px 420px at 110% -5%, #192623 0%, transparent 62%),
           var(--bg-main);
       }
 
-      .toc-toggle:hover,
-      .toc-expand:hover,
-      .toc-list a:hover,
-      .toc-list a.active,
-      .toc-list a.level-3.active {
+      :root[data-theme="dark"] .toc-toggle:hover,
+      :root[data-theme="dark"] .toc-expand:hover,
+      :root[data-theme="dark"] .toc-list a:hover,
+      :root[data-theme="dark"] .toc-list a.active,
+      :root[data-theme="dark"] .toc-list a.level-3.active {
         color: var(--text-strong);
       }
 
-      .progress {
+      :root[data-theme="dark"] .progress {
         background: #2a3230;
       }
 
-      h1, h2, h3, h4 {
+      :root[data-theme="dark"] h1,
+      :root[data-theme="dark"] h2,
+      :root[data-theme="dark"] h3,
+      :root[data-theme="dark"] h4 {
         color: #e3ebe8;
       }
 
-      h5 {
+      :root[data-theme="dark"] h5 {
         color: #8cc9b9;
       }
 
-      h5::after {
+      :root[data-theme="dark"] h5::after {
         background: linear-gradient(90deg, #3d5a52, transparent);
       }
 
-      h6 {
+      :root[data-theme="dark"] h6 {
         color: #b5cbc5;
       }
 
-      h2 {
+      :root[data-theme="dark"] h2 {
         background: linear-gradient(90deg, #22302c, transparent);
       }
 
-      .page h3 {
+      :root[data-theme="dark"] .page h3 {
         border-top-color: #3d5a52;
         border-bottom-color: #2c3b37;
         background: linear-gradient(90deg, #1f2c29, transparent);
         color: #9fd0c3;
       }
 
-      h4 {
+      :root[data-theme="dark"] h4 {
         border-left-color: #3d5a52;
         color: #b5cbc5;
       }
 
-      a {
+      :root[data-theme="dark"] a {
         color: #8cc9b9;
       }
 
-      pre,
-      .code-frame {
+      :root[data-theme="dark"] pre,
+      :root[data-theme="dark"] .code-frame {
         border-color: #2e3a3d;
       }
 
-      .code-header {
+      :root[data-theme="dark"] .code-header {
         background: #222b2d;
         color: #b4c3c8;
       }
 
-      .code-file {
+      :root[data-theme="dark"] .code-file {
         color: #8d9ea3;
       }
 
-      .copy-code {
+      :root[data-theme="dark"] .copy-code {
         border-color: #3b4a4e;
         background: #1e2526;
         color: #9fd0c3;
       }
 
-      .line-numbers {
+      :root[data-theme="dark"] .line-numbers {
         border-right-color: #2e3a3d;
         color: #6c7c80;
         background: #1c2324;
       }
 
-      :not(pre) > code {
+      :root[data-theme="dark"] :not(pre) > code {
         background: #263032;
         border-color: #34403f;
       }
 
-      .hljs-comment,
-      .hljs-quote { color: #8494a0; }
-      .hljs-keyword,
-      .hljs-selector-tag,
-      .hljs-built_in { color: #d49bd0; }
-      .hljs-string,
-      .hljs-title,
-      .hljs-section,
-      .hljs-attribute { color: #7fc8a9; }
-      .hljs-number,
-      .hljs-literal,
-      .hljs-variable { color: #e5a07a; }
-      .hljs-name,
-      .hljs-tag { color: #85b5e6; }
+      :root[data-theme="dark"] .hljs-comment,
+      :root[data-theme="dark"] .hljs-quote { color: #8494a0; }
+      :root[data-theme="dark"] .hljs-keyword,
+      :root[data-theme="dark"] .hljs-selector-tag,
+      :root[data-theme="dark"] .hljs-built_in { color: #d49bd0; }
+      :root[data-theme="dark"] .hljs-string,
+      :root[data-theme="dark"] .hljs-title,
+      :root[data-theme="dark"] .hljs-section,
+      :root[data-theme="dark"] .hljs-attribute { color: #7fc8a9; }
+      :root[data-theme="dark"] .hljs-number,
+      :root[data-theme="dark"] .hljs-literal,
+      :root[data-theme="dark"] .hljs-variable { color: #e5a07a; }
+      :root[data-theme="dark"] .hljs-name,
+      :root[data-theme="dark"] .hljs-tag { color: #85b5e6; }
 
-      .admonition.info { border-color: #2f5a50; }
-      .admonition.note { border-color: #34507a; }
-      .admonition.warning,
-      .admonition.caution,
-      .admonition.attention { border-color: #6b5228; }
-      .admonition.tip { background: #232a1b; border-color: #4d5e2c; }
-      .admonition.success,
-      .admonition.solution { background: #1c2b1c; border-color: #3c5e3c; }
-      .admonition.important,
-      .admonition.security { background: #262135; border-color: #4a3f66; }
-      .admonition.danger,
-      .admonition.failure { background: #321f1f; border-color: #6e3a36; }
-      .admonition.question,
-      .admonition.seealso,
-      .admonition.exercise { background: #1c2733; border-color: #3b5168; }
-      .admonition.bug { background: #32241b; border-color: #6b4a33; }
-      .admonition.example,
-      .admonition.quote,
-      .admonition.abstract,
-      .admonition.todo,
-      .admonition.deprecated { background: #232321; border-color: #3f3d39; }
+      :root[data-theme="dark"] .admonition.info { border-color: #2f5a50; }
+      :root[data-theme="dark"] .admonition.note { border-color: #34507a; }
+      :root[data-theme="dark"] .admonition.warning,
+      :root[data-theme="dark"] .admonition.caution,
+      :root[data-theme="dark"] .admonition.attention { border-color: #6b5228; }
+      :root[data-theme="dark"] .admonition.tip { background: #232a1b; border-color: #4d5e2c; }
+      :root[data-theme="dark"] .admonition.success,
+      :root[data-theme="dark"] .admonition.solution { background: #1c2b1c; border-color: #3c5e3c; }
+      :root[data-theme="dark"] .admonition.important,
+      :root[data-theme="dark"] .admonition.security { background: #262135; border-color: #4a3f66; }
+      :root[data-theme="dark"] .admonition.danger,
+      :root[data-theme="dark"] .admonition.failure { background: #321f1f; border-color: #6e3a36; }
+      :root[data-theme="dark"] .admonition.question,
+      :root[data-theme="dark"] .admonition.seealso,
+      :root[data-theme="dark"] .admonition.exercise { background: #1c2733; border-color: #3b5168; }
+      :root[data-theme="dark"] .admonition.bug { background: #32241b; border-color: #6b4a33; }
+      :root[data-theme="dark"] .admonition.example,
+      :root[data-theme="dark"] .admonition.quote,
+      :root[data-theme="dark"] .admonition.abstract,
+      :root[data-theme="dark"] .admonition.todo,
+      :root[data-theme="dark"] .admonition.deprecated { background: #232321; border-color: #3f3d39; }
 
-      .back-to-top,
-      .resume-go {
+      :root[data-theme="dark"] .back-to-top,
+      :root[data-theme="dark"] .resume-go {
         color: #10201c;
       }
 
-      .toc-backdrop {
+      :root[data-theme="dark"] .toc-backdrop {
         background: rgba(0, 0, 0, 0.55);
       }
 
-      .resume {
+      :root[data-theme="dark"] .resume {
         box-shadow: 0 12px 34px rgba(0, 0, 0, 0.5);
       }
 
-      .page-top.is-stuck {
+      :root[data-theme="dark"] .page-top.is-stuck {
         box-shadow: inset 0 0 0 1px var(--line), 0 8px 18px rgba(0, 0, 0, 0.4);
       }
     }
@@ -1538,6 +1606,7 @@ function buildHtmlPage({ title, htmlContent, headings }) {
       .resume,
       .progress,
       .pager,
+      .theme-toggle,
       .back-to-top,
       .copy-code,
       .line-numbers {
@@ -1626,6 +1695,10 @@ function buildHtmlPage({ title, htmlContent, headings }) {
       <div id="page-top" class="page-top">
         <header class="page-header">
           <h1 id="${documentHeading?.slug || "document-title"}">${escapeHtml(documentHeading?.title || title)}</h1>
+          <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Cambiar a tema oscuro" title="Cambiar a tema oscuro">
+            <svg class="theme-icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+            <svg class="theme-icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+          </button>
         </header>
         <div class="progress" aria-hidden="true"><span id="progress-bar"></span></div>
         <div class="pager pager-top" aria-label="Navegación entre páginas">
@@ -2359,6 +2432,49 @@ function buildHtmlPage({ title, htmlContent, headings }) {
     const tocToggle = document.getElementById("toc-toggle");
     const tocToggleIcon = tocToggle ? tocToggle.querySelector(".toc-toggle-icon") : null;
     const tocToggleText = tocToggle ? tocToggle.querySelector(".toc-toggle-text") : null;
+
+    // Botón de tema: alterna claro/oscuro y recuerda la elección.
+    // Mientras el usuario no elija, se sigue el tema del sistema.
+    const themeKey = "markdown2coursebook:theme";
+    const themeToggle = document.getElementById("theme-toggle");
+    const systemDark = window.matchMedia("(prefers-color-scheme: dark)");
+
+    function applyTheme(theme) {
+      document.documentElement.setAttribute("data-theme", theme);
+      if (themeToggle) {
+        const label = theme === "dark" ? "Cambiar a tema claro" : "Cambiar a tema oscuro";
+        themeToggle.setAttribute("aria-label", label);
+        themeToggle.title = label;
+      }
+    }
+
+    function savedTheme() {
+      try {
+        return localStorage.getItem(themeKey);
+      } catch (error) {
+        return null;
+      }
+    }
+
+    applyTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light");
+
+    if (themeToggle) {
+      themeToggle.addEventListener("click", () => {
+        const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+        applyTheme(next);
+        try {
+          localStorage.setItem(themeKey, next);
+        } catch (error) {
+          // Sin almacenamiento: el cambio dura solo esta visita.
+        }
+      });
+    }
+
+    systemDark.addEventListener("change", (event) => {
+      if (!savedTheme()) {
+        applyTheme(event.matches ? "dark" : "light");
+      }
+    });
 
     // Comportamiento del panel lateral:
     // - Empieza abierto y se cierra solo al hacer scroll hacia abajo.

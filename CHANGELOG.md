@@ -2,6 +2,48 @@
 
 Todos los cambios relevantes de este proyecto se documentan en este archivo.
 
+## [1.1.6]
+
+### Añadido
+- Botón en la cabecera para alternar entre tema claro y oscuro. La elección se recuerda en el navegador; mientras no se elija, se sigue el tema del sistema (también si cambia con la página abierta).
+
+## [1.1.5]
+
+### Corregido
+- Los saltos a apartados desde el índice o desde enlaces internos terminan en la posición correcta aunque el índice se pliegue o la cabecera se compacte durante el desplazamiento.
+- El contenido ya no se desplaza al compactarse la cabecera fija.
+
+## [1.1.4]
+
+### Cambiado
+- Cabecera compacta: título y botones de paginación en una sola línea, con la misma altura que el índice plegado.
+- La barra de progreso superior solo aparece cuando la cabecera completa deja de verse.
+
+## [1.1.3]
+
+### Añadido
+- Cabecera fija en pantallas grandes con el título, la barra de progreso y la paginación.
+
+### Cambiado
+- Encabezados de mayor tamaño.
+
+## [1.1.2]
+
+### Añadido
+- Las imágenes que ocupan un párrafo por sí solas se muestran centradas.
+
+## [1.1.1]
+
+### Añadido
+- Buscador en el índice (atajo `/`), sin distinguir tildes y con resaltado de coincidencias.
+- Apartados del índice desplegables.
+- Índice como panel deslizante en pantallas estrechas, con botón flotante para abrirlo.
+- Barra de progreso de lectura (secciones completadas más lo leído de la actual).
+- Aviso para continuar la lectura donde se dejó.
+- Cada sección tiene su propia URL e integra el historial del navegador (atrás/adelante) y los enlaces internos del contenido.
+- Tema oscuro automático según la configuración del sistema.
+- Estilos de impresión: todas las páginas seguidas y sin elementos de navegación.
+
 ## [1.0.5]
 
 ### Añadido
